@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Stopky a výkony</title>
+<meta name="theme-color" content="#0f1216">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Výkony">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<style>
+:root{
+  --bg:#0f1216;
+  --surface:#191e25;
+  --surface-2:#222932;
+  --line:#2e3742;
+  --ink:#eef2f6;
+  --muted:#8d9aab;
+  --signal:#ffd400;      /* stopky, primární akce */
+  --go:#3ddc84;          /* start */
+  --stop:#ff4d3d;        /* stop, mazání */
+  --lane:#ffffff;
+  --radius:14px;
+  --tap:56px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  background:var(--bg);color:var(--ink);
+  font:400 17px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  overscroll-behavior-y:none;
+  -webkit-text-size-adjust:100%;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{border:0;background:none;cursor:pointer}
+h1,h2,h3{margin:0;font-weight:640;letter-spacing:-.02em}
+
+/* ---------- kostra ---------- */
+#app{display:flex;flex-direction:column;height:100dvh}
+#topbar{
+  display:flex;align-items:center;gap:12px;
+  padding:calc(env(safe-area-inset-top) + 10px) 16px 10px;
+  border-bottom:1px solid var(--line);background:var(--bg);
+  position:sticky;top:0;z-index:5;
+}
+#topbar h1{font-size:20px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#view{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px 24px}
+#tabs{
+  display:grid;grid-template-columns:repeat(5,1fr);
+  border-top:1px solid var(--line);background:var(--surface);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+#tabs button{
+  padding:9px 2px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  font-size:11px;color:var(--muted);letter-spacing:-.01em;
+}
+#tabs button svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+#tabs button[aria-current="true"]{color:var(--signal)}
+
+/* ---------- obecné prvky ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.row{display:flex;align-items:center;gap:10px}
+.spread{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.tiny{font-size:12.5px}
+.stack>*+*{margin-top:10px}
+.hr{height:1px;background:var(--line);margin:14px 0;border:0}
+.num{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums}
+
+label.field{display:block;margin-bottom:12px}
+label.field>span{display:block;font-size:13.5px;color:var(--muted);margin-bottom:5px}
+input[type=text],input[type=number],input[type=date],select,textarea{
+  width:100%;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:11px;padding:12px 13px;min-height:48px;appearance:none;
+}
+select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9'><path d='M1 1l6 6 6-6' stroke='%238d9aab' stroke-width='2' fill='none' stroke-linecap='round'/></svg>");
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:38px}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+textarea{min-height:90px;resize:vertical}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:var(--tap);padding:0 18px;border-radius:13px;font-weight:600;
+  background:var(--surface-2);border:1px solid var(--line);width:100%}
+.btn.primary{background:var(--signal);color:#151006;border-color:transparent}
+.btn.go{background:var(--go);color:#04220f;border-color:transparent}
+.btn.danger{background:transparent;color:var(--stop);border-color:#4a2622}
+.btn.ghost{background:transparent}
+.btn.slim{min-height:44px;font-size:15px;padding:0 14px;width:auto}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.4}
+.btn-row{display:flex;gap:10px}
+.btn-row>.btn{flex:1}
+
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin:0 -16px 12px;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;padding:8px 14px;border-radius:999px;background:var(--surface-2);
+  border:1px solid var(--line);font-size:14.5px;color:var(--muted);min-height:40px;display:flex;align-items:center}
+.chip[aria-pressed="true"]{background:var(--signal);color:#151006;border-color:transparent;font-weight:600}
+
+.badge{display:inline-block;padding:2px 7px;border-radius:6px;font-size:11.5px;font-weight:700;background:var(--surface-2);color:var(--muted)}
+.badge.pb{background:var(--signal);color:#151006}
+.badge.g1{background:#1e7a4d;color:#eafff3}
+.badge.g2{background:#2f6b46}
+.badge.g3{background:#6b5c1f;color:#fff6d0}
+.badge.g4{background:#7a4a22;color:#ffe9d6}
+.badge.g5{background:#7a2b24;color:#ffdfdb}
+
+.empty{text-align:center;padding:38px 16px;color:var(--muted)}
+.empty h3{color:var(--ink);margin-bottom:6px;font-size:18px}
+
+/* seznamy – dráhové linky */
+.list{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--surface)}
+.item{display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid var(--line);min-height:60px;width:100%;text-align:left}
+.item:last-child{border-bottom:0}
+.item:active{background:var(--surface-2)}
+.item .grow{flex:1;min-width:0}
+.item .name{font-weight:560;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .sub{font-size:13px;color:var(--muted)}
+.rank{width:30px;text-align:right;color:var(--muted);font-weight:700}
+.rank.m1{color:var(--signal)}
+.val{font-weight:700;font-size:18px}
+
+/* ---------- stopky ---------- */
+.clock{
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums;
+  font-size:clamp(52px,17vw,74px);font-weight:700;letter-spacing:-.03em;
+  text-align:center;line-height:1;padding:18px 0 6px;color:var(--signal);
+}
+.clock.idle{color:var(--muted)}
+.clock .ms{font-size:.55em;opacity:.85}
+.bigbtn{
+  width:100%;min-height:132px;border-radius:20px;font-size:26px;font-weight:700;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;letter-spacing:-.02em;
+}
+.bigbtn .hint{font-size:13.5px;font-weight:500;opacity:.75}
+.bigbtn.go{background:var(--go);color:#04220f}
+.bigbtn.mark{background:var(--lane);color:#0f1216}
+.countdown{font-size:96px;font-weight:800;text-align:center;color:var(--signal);line-height:1.1;padding:24px 0}
+.splitline{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.splitline:last-child{border-bottom:0}
+.splitline .no{width:26px;color:var(--muted);font-weight:700;text-align:right}
+.splitline .t{font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;font-weight:700;font-size:19px;min-width:92px}
+.splitline select{min-height:44px;padding:8px 32px 8px 10px;font-size:15px}
+.iconbtn{width:44px;min-width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  border-radius:11px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted)}
+.iconbtn.danger{color:var(--stop)}
+
+/* pokusy */
+.attempts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.attempt{position:relative}
+.attempt input{text-align:center;padding-right:13px}
+.attempt .lbl{font-size:11.5px;color:var(--muted);text-align:center;margin-bottom:4px}
+.attempt.void input{color:var(--stop);text-decoration:line-through}
+
+/* ---------- sheet ---------- */
+#scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .18s;z-index:20}
+#scrim.on{opacity:1;pointer-events:auto}
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--surface);
+  border-radius:20px 20px 0 0;border-top:1px solid var(--line);
+  transform:translateY(100%);transition:transform .22s cubic-bezier(.2,.8,.3,1);
+  max-height:92dvh;display:flex;flex-direction:column}
+#sheet.on{transform:translateY(0)}
+#sheet header{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+#sheet header h2{font-size:18px;flex:1}
+#sheet .body{overflow-y:auto;padding:16px;padding-bottom:calc(env(safe-area-inset-bottom) + 20px)}
+.grabber{width:38px;height:4px;background:var(--line);border-radius:2px;margin:8px auto 0}
+
+#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 84px);transform:translate(-50%,14px);
+  background:var(--surface-2);border:1px solid var(--line);color:var(--ink);
+  padding:11px 16px;border-radius:12px;font-size:15px;z-index:40;opacity:0;
+  transition:opacity .2s,transform .2s;pointer-events:none;max-width:88vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar"><h1 id="title">Měření</h1><div id="topaction"></div></div>
+  <main id="view"></main>
+  <nav id="tabs"></nav>
+</div>
+<div id="scrim"></div>
+<div id="sheet"><div class="grabber"></div><header><h2></h2><button class="iconbtn" data-act="close-sheet" aria-label="Zavřít">✕</button></header><div class="body"></div></div>
+<div id="toast"></div>
+<script>
+'use strict';
+/* ============================================================
+   Stopky a výkony — lokální aplikace pro měření atletických disciplín
+   Vše běží v prohlížeči, data jsou v localStorage zařízení.
+   ============================================================ */
+
+/* ---------- pomocné ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const todayISO = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+const czDate = iso => { const p = String(iso || '').split('-'); return p.length === 3 ? `${+p[2]}. ${+p[1]}. ${p[0]}` : iso; };
+
+/* ---------- úložiště ---------- */
+const KEY = 'vykony.db.v1';
+let storageOK = true;
+
+function readStore() { try { return localStorage.getItem(KEY); } catch (e) { storageOK = false; return null; } }
+function writeStore(v) { try { localStorage.setItem(KEY, v); return true; } catch (e) { storageOK = false; return false; } }
+
+function seedDisciplines() {
+  const t = (name, dec) => ({ id: uid(), name, type: 'time', unit: 's', dec, attempts: 1, better: 'lower', grades: null });
+  const m = (name, unit, dec, attempts) => ({ id: uid(), name, type: 'measure', unit, dec, attempts, better: 'higher', grades: null });
+  return [
+    t('50 m', 2), t('60 m', 2), t('100 m', 2), t('300 m', 2), t('800 m', 1), t('1500 m', 1),
+    m('Skok daleký', 'cm', 0, 3),
+    m('Skok vysoký', 'cm', 0, 3),
+    m('Hod míčkem', 'm', 2, 3),
+    m('Vrh koulí', 'm', 2, 3),
+    m('Cooperův test (12 min)', 'm', 0, 1),
+    m('Shyby', 'opak.', 0, 1),
+    m('Leh-sedy za 1 min', 'opak.', 0, 1)
+  ];
+}
+
+function freshDB() {
+  return {
+    v: 2,
+    athletes: [],
+    disciplines: seedDisciplines(),
+    results: [],
+    settings: { sound: true, countdown: 0, awake: true, lastGroup: '', email: '' }
+  };
+}
+
+let DB;
+(function loadDB() {
+  const raw = readStore();
+  if (!raw) { DB = freshDB(); return; }
+  try {
+    const d = JSON.parse(raw);
+    DB = Object.assign(freshDB(), d);
+    DB.settings = Object.assign(freshDB().settings, d.settings || {});
+    if ((d.v || 1) < 2) { DB.settings.countdown = 0; DB.v = 2; }   // start je nově okamžitý
+  } catch (e) { DB = freshDB(); }
+})();
+
+let saveTimer = 0;
+function save() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => writeStore(JSON.stringify(DB)), 120);
+}
+
+/* ---------- formátování hodnot ---------- */
+function fmtTime(ms, dec = 2) {
+  if (ms == null || isNaN(ms)) return '—';
+  const p = Math.pow(10, dec);
+  const t = Math.round(ms / 1000 * p) / p;
+  const m = Math.floor(t / 60);
+  const s = t - m * 60;
+  const ss = s.toFixed(dec);
+  return (m > 0 ? m + ':' + (s < 10 ? '0' : '') + ss : ss).replace('.', ',');
+}
+function fmtNum(v, dec = 2) {
+  if (v == null || isNaN(v)) return '—';
+  return Number(v).toFixed(dec).replace('.', ',');
+}
+function fmtValue(d, v) {
+  if (v == null || isNaN(v)) return '—';
+  return d.type === 'time' ? fmtTime(v, d.dec) : fmtNum(v, d.dec) + (d.unit ? ' ' + d.unit : '');
+}
+function fmtValuePlain(d, v) { // do CSV, bez jednotky
+  if (v == null || isNaN(v)) return '';
+  return d.type === 'time' ? fmtTime(v, d.dec) : fmtNum(v, d.dec);
+}
+function parseTime(str) {
+  if (str == null) return null;
+  let s = String(str).trim().replace(',', '.').replace(/\s/g, '');
+  if (!s) return null;
+  let m = s.match(/^(\d+):(\d{1,2}(?:\.\d+)?)$/);
+  if (m) return (parseInt(m[1], 10) * 60 + parseFloat(m[2])) * 1000;
+  if (!/^\d+(\.\d+)?$/.test(s)) return null;
+  return parseFloat(s) * 1000;
+}
+function parseNum(str) {
+  if (str == null) return null;
+  const s = String(str).trim().replace(',', '.');
+  if (!s || !/^-?\d+(\.\d+)?$/.test(s)) return null;
+  return parseFloat(s);
+}
+function parseValue(d, str) { return d.type === 'time' ? parseTime(str) : parseNum(str); }
+
+/* ---------- práce s daty ---------- */
+const athleteById = id => DB.athletes.find(a => a.id === id);
+const discById = id => DB.disciplines.find(d => d.id === id);
+const fullName = a => a ? ((a.first || '') + ' ' + (a.last || '')).trim() : '—';
+const sortName = a => ((a.last || '') + ' ' + (a.first || '')).trim().toLowerCase();
+
+function groups() {
+  const g = new Set(DB.athletes.map(a => (a.group || '').trim()).filter(Boolean));
+  return Array.from(g).sort((a, b) => a.localeCompare(b, 'cs'));
+}
+function athletesIn(group) {
+  const list = DB.athletes.filter(a => !group || (a.group || '') === group);
+  return list.sort((a, b) => sortName(a).localeCompare(sortName(b), 'cs'));
+}
+function isBetter(d, a, b) { // je a lepší než b?
+  if (b == null) return true;
+  return d.better === 'lower' ? a < b : a > b;
+}
+function bestResult(athleteId, discId) {
+  const d = discById(discId);
+  if (!d) return null;
+  let best = null;
+  for (const r of DB.results) {
+    if (r.athleteId !== athleteId || r.discId !== discId) continue;
+    if (!best || isBetter(d, r.value, best.value)) best = r;
+  }
+  return best;
+}
+function gradeFor(d, v) {
+  if (!d.grades || !d.grades.length || v == null) return null;
+  const x = d.type === 'time' ? v / 1000 : v;
+  for (let i = 0; i < 4; i++) {
+    const th = d.grades[i];
+    if (th == null || isNaN(th)) continue;
+    if (d.better === 'lower' ? x <= th : x >= th) return i + 1;
+  }
+  return 5;
+}
+function gradeBadge(d, v) {
+  const g = gradeFor(d, v);
+  return g ? `<span class="badge g${g}">${g}</span>` : '';
+}
+function addResult(o) {
+  const d = discById(o.discId);
+  const prev = bestResult(o.athleteId, o.discId);
+  const r = Object.assign({
+    id: uid(), date: state.date, session: state.session || '',
+    attempts: null, note: '', created: Date.now()
+  }, o);
+  DB.results.push(r);
+  save();
+  return { result: r, isPB: !prev || isBetter(d, r.value, prev.value), prev };
+}
+
+/* ---------- zvuk, vibrace, displej ---------- */
+let actx = null;
+function beep(freq = 880, dur = 70, vol = .25) {
+  if (!DB.settings.sound) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'square'; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + dur / 1000);
+    o.connect(g); g.connect(actx.destination);
+    o.start(); o.stop(actx.currentTime + dur / 1000 + .02);
+  } catch (e) { }
+}
+function haptic() { try { navigator.vibrate && navigator.vibrate(18); } catch (e) { } }
+
+let wakeLock = null;
+async function keepAwake(on) {
+  try {
+    if (on && 'wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); }
+    else if (wakeLock) { await wakeLock.release(); wakeLock = null; }
+  } catch (e) { }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && sw.phase === 'running' && DB.settings.awake) keepAwake(true);
+});
+
+/* ---------- UI: toast + sheet ---------- */
+let toastTimer = 0;
+function toast(msg) {
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('on'), 2300);
+}
+let sheetOnClose = null;
+function openSheet(title, html, onMount) {
+  $('#sheet h2').textContent = title;
+  $('#sheet .body').innerHTML = html;
+  $('#sheet').classList.add('on');
+  $('#scrim').classList.add('on');
+  if (onMount) onMount($('#sheet .body'));
+}
+function closeSheet() {
+  $('#sheet').classList.remove('on');
+  $('#scrim').classList.remove('on');
+  if (sheetOnClose) { const f = sheetOnClose; sheetOnClose = null; f(); }
+}
+$('#scrim').addEventListener('click', closeSheet);
+
+function confirmSheet(title, text, okLabel, onOk, danger) {
+  openSheet(title, `<p class="muted" style="margin-top:0">${esc(text)}</p>
+    <div class="btn-row" style="margin-top:18px">
+      <button class="btn" data-act="close-sheet">Zpět</button>
+      <button class="btn ${danger ? 'danger' : 'primary'}" data-act="confirm-ok">${esc(okLabel)}</button>
+    </div>`);
+  window.__confirmOk = () => { closeSheet(); onOk(); };
+}
+
+/* ---------- stav obrazovek ---------- */
+const state = {
+  tab: 'measure',
+  discId: null,
+  group: DB.settings.lastGroup || '',
+  session: '',
+  date: todayISO(),
+  athFilter: '',
+  resDisc: '',
+  resMode: 'rank'   // rank | all
+};
+
+/* ============================================================
+   STOPKY
+   ============================================================ */
+const sw = { phase: 'idle', t0: 0, elapsed: 0, splits: [], lineup: [], raf: 0, cdVal: 0, cdTimer: 0 };
+
+function swReset() {
+  cancelAnimationFrame(sw.raf);
+  clearInterval(sw.cdTimer);
+  sw.phase = 'idle'; sw.t0 = 0; sw.elapsed = 0; sw.splits = [];
+  keepAwake(false);
+}
+function swTick() {
+  sw.elapsed = performance.now() - sw.t0;
+  const el = $('#clock');
+  if (el) el.innerHTML = clockHTML(sw.elapsed);
+  sw.raf = requestAnimationFrame(swTick);
+}
+function clockHTML(ms) {
+  const d = discById(state.discId);
+  const dec = d ? d.dec : 2;
+  const t = Math.max(0, ms) / 1000;
+  const m = Math.floor(t / 60);
+  const s = t - m * 60;
+  const whole = Math.floor(s);
+  const frac = (s - whole).toFixed(dec).slice(1).replace('.', ',');
+  const head = (m > 0 ? m + ':' + (whole < 10 ? '0' : '') + whole : String(whole));
+  return `${head}<span class="ms">${frac}</span>`;
+}
+function swStart() {
+  const cd = Number(DB.settings.countdown) || 0;
+  if (DB.settings.awake) keepAwake(true);
+  if (cd > 0) {
+    sw.phase = 'countdown'; sw.cdVal = cd; render();
+    beep(660, 90);
+    sw.cdTimer = setInterval(() => {
+      sw.cdVal--;
+      if (sw.cdVal > 0) { beep(660, 90); const e = $('#cd'); if (e) e.textContent = sw.cdVal; }
+      else {
+        clearInterval(sw.cdTimer);
+        beep(1320, 220, .3);
+        swGo();
+      }
+    }, 1000);
+  } else { beep(1320, 180, .3); swGo(); }
+}
+function swGo() {
+  sw.phase = 'running'; sw.t0 = performance.now(); sw.elapsed = 0; sw.splits = [];
+  render();
+  sw.raf = requestAnimationFrame(swTick);
+}
+function swMark() {
+  if (sw.phase !== 'running') return;
+  const ms = performance.now() - sw.t0;
+  const idx = sw.splits.length;
+  sw.splits.push({ id: uid(), ms, athleteId: sw.lineup[idx] || null });
+  beep(1000, 55, .2); haptic();
+  renderSplitsLive();
+}
+function swUndo() {
+  if (!sw.splits.length) return;
+  sw.splits.pop();
+  beep(400, 60, .15);
+  sw.phase === 'running' ? renderSplitsLive() : render();
+}
+function swStop() {
+  cancelAnimationFrame(sw.raf);
+  sw.elapsed = performance.now() - sw.t0;
+  sw.phase = 'review';
+  keepAwake(false);
+  beep(520, 160, .25);
+  render();
+}
+function swSave() {
+  const d = discById(state.discId);
+  const filled = sw.splits.filter(s => s.athleteId);
+  if (!filled.length) { toast('Nejdřív přiřaď čas alespoň jednomu závodníkovi.'); return; }
+  const ids = filled.map(s => s.athleteId);
+  const dup = ids.find((id, i) => ids.indexOf(id) !== i);
+  const finish = () => {
+    let pbs = 0;
+    filled.forEach(s => {
+      const res = addResult({ athleteId: s.athleteId, discId: d.id, value: Math.round(s.ms) });
+      if (res.isPB) pbs++;
+    });
+    const skipped = sw.splits.length - filled.length;
+    swReset();
+    render();
+    toast(`Uloženo ${filled.length} × ${d.name}` + (pbs ? ` · ${pbs}× osobní rekord` : '') + (skipped ? ` · ${skipped} nepřiřazeno` : ''));
+  };
+  if (dup) {
+    confirmSheet('Stejný závodník dvakrát', `${fullName(athleteById(dup))} má přiřazené dva časy. Uložit i tak?`, 'Uložit', finish);
+  } else finish();
+}
+
+/* ============================================================
+   VYKRESLOVÁNÍ
+   ============================================================ */
+const ICONS = {
+  measure: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6M19 5l1.5 1.5"/>',
+  athletes: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5M16.5 5.5a3 3 0 0 1 0 5.6M18 20c0-2.2-.8-3.9-2-5"/>',
+  disciplines: '<path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18.5" cy="18" r="2.2"/>',
+  results: '<path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1.5A3.5 3.5 0 0 0 7 11M17 6h3v1.5A3.5 3.5 0 0 1 17 11M9.5 20h5M12 14v6"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/>'
+};
+const TABS = [
+  ['measure', 'Měření'], ['athletes', 'Závodníci'], ['disciplines', 'Disciplíny'],
+  ['results', 'Výsledky'], ['settings', 'Nastavení']
+];
+
+function renderTabs() {
+  $('#tabs').innerHTML = TABS.map(([id, label]) =>
+    `<button data-tab="${id}" aria-current="${state.tab === id}">
+       <svg viewBox="0 0 24 24">${ICONS[id]}</svg><span>${label}</span></button>`).join('');
+}
+
+function render() {
+  const t = state.tab;
+  let html = '', title = '', action = '';
+  if (t === 'measure') { title = 'Měření'; html = viewMeasure(); action = state.discId ? `<button class="btn slim ghost" data-act="change-disc">Změnit</button>` : ''; }
+  if (t === 'athletes') { title = 'Závodníci'; html = viewAthletes(); action = `<button class="iconbtn" data-act="ath-add" aria-label="Přidat závodníka">＋</button>`; }
+  if (t === 'disciplines') { title = 'Disciplíny'; html = viewDisciplines(); action = `<button class="iconbtn" data-act="disc-add" aria-label="Přidat disciplínu">＋</button>`; }
+  if (t === 'results') { title = 'Výsledky'; html = viewResults(); }
+  if (t === 'settings') { title = 'Nastavení'; html = viewSettings(); }
+  $('#title').textContent = title;
+  $('#topaction').innerHTML = action;
+  $('#view').innerHTML = html;
+  $$('#tabs button').forEach(b => b.setAttribute('aria-current', String(b.dataset.tab === t)));
+}
+
+function groupChips(act) {
+  const gs = groups();
+  if (!gs.length) return '';
+  return `<div class="chips">
+    <button class="chip" data-act="${act}" data-g="" aria-pressed="${state.group === ''}">Všichni</button>
+    ${gs.map(g => `<button class="chip" data-act="${act}" data-g="${esc(g)}" aria-pressed="${state.group === g}">${esc(g)}</button>`).join('')}
+  </div>`;
+}
+
+/* ---------- MĚŘENÍ ---------- */
+function viewMeasure() {
+  if (!DB.athletes.length) {
+    return `<div class="empty"><h3>Zatím tu nikdo není</h3>
+      <p>Přidej závodníky ručně nebo je najednou naimportuj ze souboru CSV.</p>
+      <button class="btn primary" data-act="go-athletes" style="margin-top:14px">Přidat závodníky</button></div>`;
+  }
+  const d = discById(state.discId);
+  if (!d) return viewPickDiscipline();
+  return d.type === 'time' ? viewStopwatch(d) : viewField(d);
+}
+
+function viewPickDiscipline() {
+  const row = d => `<button class="item" data-act="pick-disc" data-id="${d.id}">
+      <div class="grow"><div class="name">${esc(d.name)}</div>
+      <div class="sub">${d.type === 'time' ? 'stopky · přesnost 0,' + '0'.repeat(Math.max(0, d.dec - 1)) + '1 s' : 'zápis výkonu · ' + esc(d.unit) + ' · ' + d.attempts + '× pokus'}</div></div>
+      <span class="muted">›</span></button>`;
+  const times = DB.disciplines.filter(d => d.type === 'time');
+  const meas = DB.disciplines.filter(d => d.type === 'measure');
+  return `<p class="muted small" style="margin-top:0">Vyber disciplínu, kterou budeš teď měřit.</p>
+    ${times.length ? `<h3 style="margin:16px 0 8px;font-size:15px" class="muted">Na čas</h3><div class="list">${times.map(row).join('')}</div>` : ''}
+    ${meas.length ? `<h3 style="margin:20px 0 8px;font-size:15px" class="muted">Na výkon</h3><div class="list">${meas.map(row).join('')}</div>` : ''}
+    <button class="btn ghost" data-act="disc-add" style="margin-top:16px">Přidat vlastní disciplínu</button>`;
+}
+
+function measureHeader(d) {
+  return `<div class="card">
+    <div class="spread"><h2 style="font-size:19px">${esc(d.name)}</h2>
+      <span class="badge">${d.type === 'time' ? 'čas' : esc(d.unit)}</span></div>
+    <div class="row" style="margin-top:12px;gap:10px">
+      <input type="date" id="mDate" value="${state.date}" style="flex:0 0 46%">
+      <input type="text" id="mSession" placeholder="Označení, např. 1.A" value="${esc(state.session)}">
+    </div>
+  </div>${groupChips('group-measure')}`;
+}
+
+function viewStopwatch(d) {
+  const H = measureHeader(d);
+  if (sw.phase === 'countdown') {
+    return H + `<div class="card"><div class="countdown" id="cd">${sw.cdVal}</div>
+      <p class="muted" style="text-align:center;margin:0 0 14px">Připravit… stopky se spustí samy</p>
+      <button class="btn danger" data-act="sw-cancel">Zrušit odpočet</button></div>`;
+  }
+  if (sw.phase === 'idle') {
+    return H + lineupBlock() + `<div class="card">
+      <div class="clock idle" id="clock">${clockHTML(0)}</div>
+      <button class="bigbtn go" data-act="sw-start">Start
+        <span class="hint">${DB.settings.countdown > 0 ? 'odpočet ' + DB.settings.countdown + ' s a pípnutí' : 'spustí se okamžitě'}</span></button>
+      <button class="btn ghost" data-act="manual-open" style="margin-top:12px">Zapsat čas ručně</button>
+    </div>`;
+  }
+  if (sw.phase === 'running') {
+    return H + `<div class="card">
+      <div class="clock" id="clock">${clockHTML(sw.elapsed)}</div>
+      <button class="bigbtn mark" data-act="sw-mark">Doběh
+        <span class="hint">klepni při každém proběhnutí cílem</span></button>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn" data-act="sw-undo">Zpět</button>
+        <button class="btn danger" data-act="sw-stop">Stop</button>
+      </div>
+      <div id="liveSplits" style="margin-top:8px"></div>
+    </div>`;
+  }
+  // review
+  return H + `<div class="card">
+    <div class="clock" id="clock">${clockHTML(sw.elapsed)}</div>
+    <p class="muted small" style="text-align:center;margin:0 0 10px">Přiřaď zaznamenané časy závodníkům.</p>
+    <div id="reviewSplits">${reviewSplitsHTML()}</div>
+    <button class="btn ghost slim" data-act="split-add" style="width:100%;margin-top:12px">Přidat další čas ručně</button>
+    <div class="btn-row" style="margin-top:14px">
+      <button class="btn danger" data-act="sw-discard">Zahodit</button>
+      <button class="btn primary" data-act="sw-save">Uložit výsledky</button>
+    </div>
+  </div>`;
+}
+
+function lineupBlock() {
+  const list = athletesIn(state.group);
+  if (!list.length) return '';
+  return `<div class="card">
+    <div class="spread"><h3 style="font-size:15px">Startovní listina</h3>
+      ${sw.lineup.length ? `<button class="btn slim ghost" data-act="lineup-clear">Vymazat</button>` : ''}</div>
+    <p class="muted tiny" style="margin:6px 0 10px">Nepovinné. Klepni na jména v pořadí, v jakém očekáváš doběh — časy se pak přiřadí samy.</p>
+    <div class="chips" style="margin-bottom:0">
+      ${list.map(a => {
+        const i = sw.lineup.indexOf(a.id);
+        return `<button class="chip" data-act="lineup-toggle" data-id="${a.id}" aria-pressed="${i >= 0}">${i >= 0 ? (i + 1) + '. ' : ''}${esc(fullName(a))}</button>`;
+      }).join('')}
+    </div></div>`;
+}
+
+function renderSplitsLive() {
+  const box = $('#liveSplits');
+  if (!box) return;
+  const d = discById(state.discId);
+  box.innerHTML = sw.splits.slice().reverse().map((s) => {
+    const i = sw.splits.indexOf(s);
+    const a = athleteById(s.athleteId);
+    return `<div class="splitline"><span class="no">${i + 1}</span>
+      <span class="t">${fmtTime(s.ms, d.dec)}</span>
+      <span class="grow muted small" style="flex:1">${a ? esc(fullName(a)) : 'nepřiřazeno'}</span></div>`;
+  }).join('');
+}
+
+function reviewSplitsHTML() {
+  const d = discById(state.discId);
+  const list = athletesIn(state.group);
+  if (!sw.splits.length) return `<p class="muted small" style="text-align:center">Žádný čas nebyl zaznamenán.</p>`;
+  return sw.splits.map((s, i) => `<div class="splitline">
+      <span class="no">${i + 1}</span>
+      <button class="t" data-act="split-time" data-id="${s.id}" style="text-align:left">${fmtTime(s.ms, d.dec)}</button>
+      <select data-split="${s.id}" style="flex:1">
+        <option value="">— přiřaď závodníka —</option>
+        ${list.map(a => `<option value="${a.id}" ${s.athleteId === a.id ? 'selected' : ''}>${esc(fullName(a))}</option>`).join('')}
+      </select>
+      <button class="iconbtn danger" data-act="split-del" data-id="${s.id}" aria-label="Smazat čas">✕</button>
+    </div>`).join('');
+}
+
+function viewField(d) {
+  const list = athletesIn(state.group);
+  const rows = list.map(a => {
+    const b = bestResult(a.id, d.id);
+    const today = DB.results.filter(r => r.athleteId === a.id && r.discId === d.id && r.date === state.date)
+      .sort((x, y) => y.created - x.created)[0];
+    return `<button class="item" data-act="entry-open" data-id="${a.id}">
+      <div class="grow"><div class="name">${esc(fullName(a))}</div>
+        <div class="sub">${b ? 'nejlepší ' + fmtValue(d, b.value) : 'zatím bez výkonu'}</div></div>
+      ${today ? `<span class="val">${fmtValue(d, today.value)}</span>` : `<span class="muted">zapsat ›</span>`}
+    </button>`;
+  }).join('');
+  return measureHeader(d) + (list.length
+    ? `<div class="list">${rows}</div><p class="muted tiny" style="margin-top:12px">Klepni na jméno a zapiš pokusy. Neplatný pokus zapiš jako <b>x</b>.</p>`
+    : `<div class="empty"><h3>V této skupině nikdo není</h3></div>`);
+}
+
+/* ---------- ZÁVODNÍCI ---------- */
+function viewAthletes() {
+  return `<input type="text" id="athSearch" placeholder="Hledat jméno" value="${esc(state.athFilter)}" style="margin-bottom:12px">
+    ${groupChips('group-ath')}
+    <div id="athList">${athListHTML()}</div>
+    <div class="btn-row" style="margin-top:16px">
+      <button class="btn" data-act="import-open">Import CSV</button>
+      <button class="btn" data-act="export-ath">Export CSV</button>
+    </div>`;
+}
+function athListHTML() {
+  const q = state.athFilter.trim().toLowerCase();
+  const list = athletesIn(state.group).filter(a => !q || fullName(a).toLowerCase().includes(q));
+  if (!list.length) return `<div class="empty"><h3>Zatím žádní závodníci</h3>
+    <p>Přidej je tlačítkem ＋ nahoře, nebo naimportuj seznam z CSV.</p></div>`;
+  return `<div class="list">${list.map(a => {
+    const n = DB.results.filter(r => r.athleteId === a.id).length;
+    return `<button class="item" data-act="ath-edit" data-id="${a.id}">
+      <div class="grow"><div class="name">${esc(fullName(a))}</div>
+      <div class="sub">${a.group ? esc(a.group) + ' · ' : ''}${n} ${n === 1 ? 'výkon' : (n >= 2 && n <= 4 ? 'výkony' : 'výkonů')}</div></div>
+      <span class="muted">›</span></button>`;
+  }).join('')}</div>`;
+}
+
+function athSheet(id) {
+  const a = id ? athleteById(id) : { first: '', last: '', group: state.group || DB.settings.lastGroup || '', note: '' };
+  openSheet(id ? 'Upravit závodníka' : 'Nový závodník', `
+    <label class="field"><span>Jméno</span><input type="text" id="aFirst" value="${esc(a.first)}" autocapitalize="words"></label>
+    <label class="field"><span>Příjmení</span><input type="text" id="aLast" value="${esc(a.last)}" autocapitalize="words"></label>
+    <label class="field"><span>Skupina nebo třída</span><input type="text" id="aGroup" value="${esc(a.group)}" list="groupList" autocapitalize="characters">
+      <datalist id="groupList">${groups().map(g => `<option value="${esc(g)}">`).join('')}</datalist></label>
+    <label class="field"><span>Poznámka</span><input type="text" id="aNote" value="${esc(a.note || '')}"></label>
+    <button class="btn primary" data-act="ath-save" data-id="${id || ''}">Uložit</button>
+    ${id ? `<button class="btn danger" data-act="ath-del" data-id="${id}" style="margin-top:10px">Smazat závodníka i jeho výkony</button>` : ''}`,
+    body => { const f = $('#aFirst', body); if (!id) setTimeout(() => f.focus(), 250); });
+}
+
+/* ---------- DISCIPLÍNY ---------- */
+function viewDisciplines() {
+  return `<div class="list">${DB.disciplines.map(d => {
+    const n = DB.results.filter(r => r.discId === d.id).length;
+    const sub = d.type === 'time'
+      ? `stopky · ${d.dec} des. místa · nižší je lepší`
+      : `výkon v ${esc(d.unit)} · ${d.attempts}× pokus · ${d.better === 'higher' ? 'vyšší' : 'nižší'} je lepší`;
+    return `<button class="item" data-act="disc-edit" data-id="${d.id}">
+      <div class="grow"><div class="name">${esc(d.name)}</div><div class="sub">${sub}${n ? ' · ' + n + ' záznamů' : ''}</div></div>
+      <span class="muted">›</span></button>`;
+  }).join('')}</div>
+  <p class="muted tiny" style="margin-top:12px">Známkovací limity jsou nepovinné. Když je vyplníš, ke každému výkonu se rovnou zobrazí známka.</p>`;
+}
+
+function discSheet(id) {
+  const d = id ? discById(id) : { name: '', type: 'time', unit: 's', dec: 2, attempts: 1, better: 'lower', grades: null };
+  const g = d.grades || [null, null, null, null];
+  openSheet(id ? 'Upravit disciplínu' : 'Nová disciplína', `
+    <label class="field"><span>Název</span><input type="text" id="dName" value="${esc(d.name)}" placeholder="např. 100 m"></label>
+    <label class="field"><span>Způsob měření</span>
+      <select id="dType">
+        <option value="time" ${d.type === 'time' ? 'selected' : ''}>Čas (stopky)</option>
+        <option value="measure" ${d.type === 'measure' ? 'selected' : ''}>Výkon (délka, počet, body)</option>
+      </select></label>
+    <div class="row" style="gap:10px">
+      <label class="field" style="flex:1"><span>Jednotka</span><input type="text" id="dUnit" value="${esc(d.unit)}" placeholder="m, cm, opak."></label>
+      <label class="field" style="flex:1"><span>Desetinná místa</span>
+        <select id="dDec">${[0, 1, 2, 3].map(n => `<option value="${n}" ${d.dec === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+    </div>
+    <div class="row" style="gap:10px">
+      <label class="field" style="flex:1"><span>Počet pokusů</span>
+        <select id="dAtt">${[1, 2, 3, 4, 5, 6].map(n => `<option value="${n}" ${d.attempts === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+      <label class="field" style="flex:1"><span>Lepší je</span>
+        <select id="dBetter">
+          <option value="lower" ${d.better === 'lower' ? 'selected' : ''}>nižší hodnota</option>
+          <option value="higher" ${d.better === 'higher' ? 'selected' : ''}>vyšší hodnota</option>
+        </select></label>
+    </div>
+    <hr class="hr">
+    <p class="muted small" style="margin:0 0 10px">Limity pro známky (nepovinné). Zadej hranici pro známku 1 až 4, horší výkon dostane 5.</p>
+    <div class="row" style="gap:8px">
+      ${[1, 2, 3, 4].map(i => `<label class="field" style="flex:1;margin-bottom:0"><span>na ${i}</span>
+        <input type="text" inputmode="decimal" id="dG${i}" value="${g[i - 1] != null ? String(g[i - 1]).replace('.', ',') : ''}"></label>`).join('')}
+    </div>
+    <button class="btn primary" data-act="disc-save" data-id="${id || ''}" style="margin-top:18px">Uložit</button>
+    ${id ? `<button class="btn danger" data-act="disc-del" data-id="${id}" style="margin-top:10px">Smazat disciplínu i její výsledky</button>` : ''}`);
+}
+
+/* ---------- VÝSLEDKY ---------- */
+function viewResults() {
+  if (!DB.results.length) return `<div class="empty"><h3>Zatím žádné výsledky</h3>
+    <p>Změř první disciplínu a objeví se tady i s pořadím.</p></div>`;
+  const used = DB.disciplines.filter(d => DB.results.some(r => r.discId === d.id));
+  if (!state.resDisc || !used.some(d => d.id === state.resDisc)) state.resDisc = used[0].id;
+  const d = discById(state.resDisc);
+  let rows = DB.results.filter(r => r.discId === d.id);
+  if (state.group) rows = rows.filter(r => { const a = athleteById(r.athleteId); return a && a.group === state.group; });
+  if (state.resMode === 'rank') {
+    const best = new Map();
+    rows.forEach(r => { const b = best.get(r.athleteId); if (!b || isBetter(d, r.value, b.value)) best.set(r.athleteId, r); });
+    rows = Array.from(best.values()).sort((a, b) => d.better === 'lower' ? a.value - b.value : b.value - a.value);
+  } else {
+    rows = rows.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.created - a.created);
+  }
+  const body = rows.length ? `<div class="list">${rows.map((r, i) => {
+    const a = athleteById(r.athleteId);
+    return `<button class="item" data-act="res-open" data-id="${r.id}">
+      ${state.resMode === 'rank' ? `<span class="rank ${i === 0 ? 'm1' : ''}">${i + 1}.</span>` : ''}
+      <div class="grow"><div class="name">${esc(fullName(a))}</div>
+        <div class="sub">${a && a.group ? esc(a.group) + ' · ' : ''}${czDate(r.date)}${r.session ? ' · ' + esc(r.session) : ''}</div></div>
+      ${gradeBadge(d, r.value)}
+      <span class="val">${fmtValue(d, r.value)}</span></button>`;
+  }).join('')}</div>` : `<div class="empty"><h3>Pro tento výběr nic není</h3></div>`;
+
+  return `<label class="field"><span>Disciplína</span><select id="resDisc">
+      ${used.map(x => `<option value="${x.id}" ${x.id === state.resDisc ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}
+    </select></label>
+    ${groupChips('group-res')}
+    <div class="chips">
+      <button class="chip" data-act="res-mode" data-m="rank" aria-pressed="${state.resMode === 'rank'}">Pořadí</button>
+      <button class="chip" data-act="res-mode" data-m="all" aria-pressed="${state.resMode === 'all'}">Vše podle data</button>
+    </div>
+    ${body}
+    <div class="btn-row" style="margin-top:16px">
+      <button class="btn" data-act="export-res">Uložit tabulku</button>
+      <button class="btn primary" data-act="send-mail">Odeslat e-mailem</button>
+    </div>`;
+}
+
+function resSheet(id) {
+  const r = DB.results.find(x => x.id === id);
+  if (!r) return;
+  const d = discById(r.discId), a = athleteById(r.athleteId);
+  const hist = DB.results.filter(x => x.athleteId === r.athleteId && x.discId === r.discId)
+    .sort((x, y) => y.created - x.created);
+  const b = bestResult(r.athleteId, r.discId);
+  openSheet(fullName(a), `
+    <div class="spread"><div><div class="muted small">${esc(d.name)} · ${czDate(r.date)}</div>
+      <div style="font-size:34px;font-weight:700" class="num">${fmtValue(d, r.value)}</div></div>
+      <div>${b && b.id === r.id ? '<span class="badge pb">osobní rekord</span> ' : ''}${gradeBadge(d, r.value)}</div></div>
+    ${r.attempts && r.attempts.length > 1 ? `<p class="muted small">Pokusy: ${r.attempts.map(v => v == null ? 'x' : fmtValuePlain(d, v)).join(' · ')}</p>` : ''}
+    <label class="field" style="margin-top:14px"><span>Výkon</span>
+      <input type="text" inputmode="decimal" id="rVal" value="${fmtValuePlain(d, r.value)}"></label>
+    <label class="field"><span>Datum</span><input type="date" id="rDate" value="${r.date}"></label>
+    <label class="field"><span>Poznámka</span><input type="text" id="rNote" value="${esc(r.note || '')}"></label>
+    <button class="btn primary" data-act="res-save" data-id="${r.id}">Uložit změny</button>
+    <button class="btn danger" data-act="res-del" data-id="${r.id}" style="margin-top:10px">Smazat výkon</button>
+    ${hist.length > 1 ? `<hr class="hr"><h3 style="font-size:15px;margin-bottom:8px">Historie</h3>
+      ${hist.map(h => `<div class="spread small" style="padding:6px 0;border-bottom:1px solid var(--line)">
+        <span class="muted">${czDate(h.date)}</span><span class="num">${fmtValue(d, h.value)}</span></div>`).join('')}` : ''}`);
+}
+
+/* ---------- NASTAVENÍ ---------- */
+function tgl(k, label, hint) {
+  return `<button class="item" data-act="set-toggle" data-k="${k}" style="border-radius:0">
+    <div class="grow"><div class="name">${label}</div><div class="sub">${hint}</div></div>
+    <span class="badge ${DB.settings[k] ? 'pb' : ''}">${DB.settings[k] ? 'zapnuto' : 'vypnuto'}</span></button>`;
+}
+function viewSettings() {
+  return `${!storageOK ? `<div class="card" style="border-color:#7a2b24">
+      <h3 style="font-size:16px;color:var(--stop)">Data se neukládají</h3>
+      <p class="small muted" style="margin-bottom:0">Prohlížeč zablokoval místní úložiště. Aplikace funguje, ale po zavření se data ztratí. Otevři ji z plochy iPhonu (ne v anonymním okně) a v Nastavení → Safari nech povolené cookies.</p></div>` : ''}
+    <div class="list">${tgl('sound', 'Zvuk', 'Pípnutí při odpočtu a zápisu času')}
+      ${tgl('awake', 'Nechat displej svítit', 'Během běhu stopek')}</div>
+    <label class="field" style="margin-top:14px"><span>Odpočet před startem</span>
+      <select id="setCd">${[0, 3, 5, 10].map(n => `<option value="${n}" ${DB.settings.countdown === n ? 'selected' : ''}>${n === 0 ? 'bez odpočtu' : n + ' sekund'}</option>`).join('')}</select></label>
+    <hr class="hr">
+    <h3 style="font-size:16px;margin-bottom:10px">Data</h3>
+    <button class="btn primary" data-act="send-mail">Odeslat e-mailem</button>
+    <p class="muted tiny" style="margin:10px 0 14px">Pošle dvě přílohy: tabulku všech výkonů (CSV pro Excel) a zálohu, ze které se v jiném telefonu jedním klepnutím nastaví závodníci, disciplíny i známkové limity.</p>
+    <label class="field"><span>Komu posílat (nepovinné)</span>
+      <input type="text" inputmode="email" autocapitalize="off" autocorrect="off" id="setMail" value="${esc(DB.settings.email || '')}" placeholder="jmeno@skola.cz"></label>
+    <div class="btn-row"><button class="btn" data-act="export-all">Uložit CSV</button>
+      <button class="btn" data-act="export-json">Uložit zálohu</button></div>
+    <button class="btn" data-act="import-json" style="margin-top:10px">Načíst zálohu</button>
+    <button class="btn danger" data-act="wipe" style="margin-top:10px">Smazat všechna data</button>
+    <p class="muted tiny" style="margin-top:14px">${DB.athletes.length} závodníků · ${DB.disciplines.length} disciplín · ${DB.results.length} výkonů.
+      Data jsou uložená jen v tomto zařízení. Zálohu si občas ulož do Souborů nebo na iCloud.</p>
+    <hr class="hr">
+    <h3 style="font-size:16px;margin-bottom:8px">Jak mít appku na ploše</h3>
+    <p class="muted small" style="margin-top:0">V Safari klepni na ikonu sdílení a zvol <b>Přidat na plochu</b>. Aplikace se pak spouští na celou obrazovku a funguje i bez signálu.</p>`;
+}
+
+/* ============================================================
+   ZÁPIS VÝKONŮ
+   ============================================================ */
+function entrySheet(athleteId) {
+  const d = discById(state.discId);
+  const a = athleteById(athleteId);
+  const list = athletesIn(state.group);
+  const idx = list.findIndex(x => x.id === athleteId);
+  const next = list[idx + 1];
+  const existing = DB.results.filter(r => r.athleteId === athleteId && r.discId === d.id && r.date === state.date)
+    .sort((x, y) => y.created - x.created)[0];
+  const pre = existing ? (existing.attempts || [existing.value]) : [];
+  const val = v => v == null ? '' : fmtValuePlain(d, v);
+  const b = bestResult(athleteId, d.id);
+  const n = d.attempts;
+  const hint = d.type === 'time' ? 'čas, např. 12,34 nebo 1:05,2' : 'hodnota v ' + d.unit;
+
+  const fields = n === 1
+    ? `<label class="field"><span>Výkon — ${hint}</span>
+        <input type="text" inputmode="decimal" class="att" data-i="0" value="${esc(val(pre[0]))}" placeholder="—"></label>`
+    : `<div class="attempts">${Array.from({ length: n }, (_, i) =>
+        `<div class="attempt"><div class="lbl">${i + 1}. pokus</div>
+          <input type="text" inputmode="decimal" class="att" data-i="${i}" value="${esc(val(pre[i]))}" placeholder="—"></div>`).join('')}</div>
+       <p class="muted tiny" style="margin:10px 0 0">Zadej ${hint}. Neplatný pokus zapiš jako <b>x</b>. Počítá se nejlepší.</p>`;
+
+  openSheet(fullName(a), `
+    <div class="spread" style="margin-bottom:14px">
+      <span class="muted small">${esc(d.name)} · ${czDate(state.date)}</span>
+      ${b ? `<span class="badge">osobní nej ${fmtValue(d, b.value)}</span>` : ''}</div>
+    ${fields}
+    <div class="btn-row" style="margin-top:18px">
+      ${next ? `<button class="btn" data-act="entry-save" data-id="${athleteId}" data-next="${next.id}">Uložit a další</button>` : ''}
+      <button class="btn primary" data-act="entry-save" data-id="${athleteId}">Uložit</button>
+    </div>
+    ${existing ? `<button class="btn danger" data-act="res-del" data-id="${existing.id}" style="margin-top:10px">Smazat dnešní zápis</button>` : ''}`,
+    body => setTimeout(() => { const f = $('.att', body); if (f) { f.focus(); f.select && f.select(); } }, 250));
+}
+
+function entrySave(athleteId, nextId) {
+  const d = discById(state.discId);
+  const inputs = $$('#sheet .att');
+  const attempts = inputs.map(i => {
+    const raw = i.value.trim();
+    if (!raw || /^[xX-]$/.test(raw)) return null;
+    return parseValue(d, raw);
+  });
+  const valid = attempts.filter(v => v != null && !isNaN(v));
+  if (!valid.length) { toast('Zadej alespoň jeden platný pokus.'); return; }
+  const best = valid.reduce((m, v) => isBetter(d, v, m) ? v : m, valid[0]);
+  const value = d.type === 'time' ? Math.round(best) : best;
+  const existing = DB.results.filter(r => r.athleteId === athleteId && r.discId === d.id && r.date === state.date)
+    .sort((x, y) => y.created - x.created)[0];
+  let pb = false;
+  if (existing) {
+    existing.value = value; existing.attempts = attempts; existing.session = state.session || existing.session;
+    save();
+  } else {
+    const res = addResult({ athleteId, discId: d.id, value, attempts });
+    pb = res.isPB && DB.results.filter(r => r.athleteId === athleteId && r.discId === d.id).length > 1;
+  }
+  toast(fullName(athleteById(athleteId)) + ' · ' + fmtValue(d, value) + (pb ? ' · osobní rekord!' : ''));
+  if (pb) beep(1320, 200, .25);
+  render();
+  if (nextId) entrySheet(nextId); else closeSheet();
+}
+
+function manualSheet() {
+  const d = discById(state.discId);
+  const list = athletesIn(state.group);
+  openSheet('Zapsat čas ručně', `
+    <label class="field"><span>Závodník</span><select id="mAth">
+      ${list.map(a => `<option value="${a.id}">${esc(fullName(a))}</option>`).join('')}</select></label>
+    <label class="field"><span>Čas — např. 12,34 nebo 1:05,2</span>
+      <input type="text" inputmode="decimal" id="mVal" placeholder="0,00"></label>
+    <button class="btn primary" data-act="manual-save">Zapsat</button>
+    <p class="muted tiny" style="margin-top:12px">Sheet zůstane otevřený, můžeš zapisovat jednoho po druhém.</p>`,
+    body => setTimeout(() => $('#mVal', body).focus(), 250));
+}
+
+function splitEditSheet(id) {
+  const s = sw.splits.find(x => x.id === id);
+  const d = discById(state.discId);
+  if (!s) return;
+  openSheet('Upravit čas', `
+    <label class="field"><span>Čas — např. 12,34 nebo 1:05,2</span>
+      <input type="text" inputmode="decimal" id="sVal" value="${fmtTime(s.ms, d.dec)}"></label>
+    <button class="btn primary" data-act="split-save" data-id="${id}">Uložit</button>`,
+    body => setTimeout(() => { const i = $('#sVal', body); i.focus(); i.select(); }, 250));
+}
+
+/* ============================================================
+   CSV / ZÁLOHY
+   ============================================================ */
+function parseCSV(text) {
+  text = String(text).replace(/^\uFEFF/, '');
+  const first = text.split(/\r?\n/)[0] || '';
+  const cnt = { ';': (first.match(/;/g) || []).length, ',': (first.match(/,/g) || []).length, '\t': (first.match(/\t/g) || []).length };
+  const delim = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0] || ';';
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+    else if (c === '"') q = true;
+    else if (c === delim) { row.push(cur); cur = ''; }
+    else if (c === '\n') { row.push(cur); cur = ''; rows.push(row); row = []; }
+    else if (c !== '\r') cur += c;
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim() !== ''));
+}
+const noAcc = s => String(s).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+function importAthletes(text, forcedGroup) {
+  const rows = parseCSV(text);
+  if (!rows.length) return 0;
+  const head = rows[0].map(noAcc);
+  const known = ['jmeno', 'prijmeni', 'trida', 'skupina', 'name', 'first', 'last', 'group', 'class', 'rocnik', 'zavodnik', 'poznamka'];
+  const hasHeader = head.some(h => known.includes(h));
+  const idx = { first: -1, last: -1, group: -1, note: -1 };
+  if (hasHeader) head.forEach((h, i) => {
+    if (['jmeno', 'krestni', 'first', 'firstname'].includes(h)) idx.first = i;
+    else if (['prijmeni', 'last', 'lastname', 'surname'].includes(h)) idx.last = i;
+    else if (['trida', 'skupina', 'group', 'class', 'rocnik', 'kategorie'].includes(h)) idx.group = i;
+    else if (['poznamka', 'note'].includes(h)) idx.note = i;
+    else if (['name', 'zavodnik', 'cele jmeno'].includes(h) && idx.first < 0) idx.first = i;
+  });
+  const data = hasHeader ? rows.slice(1) : rows;
+  let n = 0;
+  data.forEach(r => {
+    let first = '', last = '', group = forcedGroup || '', note = '';
+    if (hasHeader) {
+      first = (idx.first >= 0 ? r[idx.first] || '' : r[0] || '').trim();
+      last = (idx.last >= 0 ? r[idx.last] || '' : '').trim();
+      if (idx.group >= 0 && !forcedGroup) group = (r[idx.group] || '').trim();
+      if (idx.note >= 0) note = (r[idx.note] || '').trim();
+    } else if (r.length === 1) {
+      first = (r[0] || '').trim();
+    } else {
+      first = (r[0] || '').trim(); last = (r[1] || '').trim();
+      if (!forcedGroup) group = (r[2] || '').trim();
+    }
+    if (!last && first.includes(' ')) {
+      const p = first.split(/\s+/);
+      last = p.pop(); first = p.join(' ');
+    }
+    if (!first && !last) return;
+    if (DB.athletes.some(a => a.first === first && a.last === last && (a.group || '') === (group || ''))) return;
+    DB.athletes.push({ id: uid(), first, last, group, note });
+    n++;
+  });
+  save();
+  return n;
+}
+
+function toCSV(rows) {
+  return '\uFEFF' + rows.map(r => r.map(c => {
+    const s = String(c ?? '');
+    return /[;"\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }).join(';')).join('\r\n');
+}
+function download(name, text, mime = 'text/csv') {
+  try {
+    const blob = new Blob([text], { type: mime + ';charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name; a.style.display = 'none';
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1500);
+    toast('Soubor ' + name + ' je stažený.');
+  } catch (e) { toast('Stažení se nepovedlo.'); }
+}
+function readFile(file, cb) {
+  if (!file) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    const buf = fr.result;
+    let txt;
+    try { txt = new TextDecoder('utf-8', { fatal: true }).decode(buf); }
+    catch (e) { try { txt = new TextDecoder('windows-1250').decode(buf); } catch (e2) { txt = new TextDecoder().decode(buf); } }
+    cb(txt);
+  };
+  fr.readAsArrayBuffer(file);
+}
+function resultRows(results) {
+  const head = ['Datum', 'Skupina', 'Příjmení', 'Jméno', 'Disciplína', 'Výkon', 'Jednotka', 'Známka', 'Pokusy', 'Označení', 'Poznámka'];
+  const rows = results.map(r => {
+    const a = athleteById(r.athleteId) || {}, d = discById(r.discId) || {};
+    const g = gradeFor(d, r.value);
+    return [r.date, a.group || '', a.last || '', a.first || '', d.name || '', fmtValuePlain(d, r.value),
+      d.type === 'time' ? 's' : (d.unit || ''), g || '',
+      (r.attempts && r.attempts.length > 1) ? r.attempts.map(v => v == null ? 'x' : fmtValuePlain(d, v)).join(' / ') : '',
+      r.session || '', r.note || ''];
+  });
+  return [head, ...rows];
+}
+function importSheet() {
+  openSheet('Import závodníků z CSV', `
+    <p class="muted small" style="margin-top:0">Podporované sloupce: <b>Jméno; Příjmení; Skupina</b>. První řádek může být hlavička. Funguje i prostý seznam „Petr Novák“ na každém řádku. Oddělovač i kódování se poznají samy, duplicity se přeskočí.</p>
+    <label class="field"><span>Soubor</span><input type="file" id="csvFile" accept=".csv,.txt,text/csv,text/plain"></label>
+    <label class="field"><span>…nebo vlož seznam sem</span><textarea id="csvText" placeholder="Petr Novák&#10;Martin Dvořák&#10;Jan Svoboda"></textarea></label>
+    <label class="field"><span>Zařadit všechny do skupiny (nepovinné)</span>
+      <input type="text" id="csvGroup" value="${esc(state.group)}" placeholder="např. 1.A"></label>
+    <button class="btn primary" data-act="import-run">Naimportovat</button>`);
+}
+
+
+function exportPack() {
+  const stamp = todayISO();
+  const rows = DB.results.slice().sort((a, c) =>
+    (a.date || '').localeCompare(c.date || '') || a.created - c.created);
+  const csv = toCSV(resultRows(rows));
+  const backup = JSON.stringify(Object.assign({
+    app: 'Stopky a výkony', exported: new Date().toISOString()
+  }, DB));
+  return {
+    stamp,
+    csvName: `vysledky-${stamp}.csv`, csv,
+    jsonName: `zaloha-vykony-${stamp}.json`, backup
+  };
+}
+
+function sendByMail() {
+  const p = exportPack();
+  const subject = `Výkony ${czDate(p.stamp)}`;
+  const body = `V příloze jsou dva soubory:\n\n`
+    + `• ${p.csvName} — tabulka všech výkonů (otevře se v Excelu)\n`
+    + `• ${p.jsonName} — záloha aplikace; v jiném telefonu ji načti v Nastavení → Načíst zálohu `
+    + `a nastaví se závodníci, disciplíny i známkové limity\n\n`
+    + `${DB.athletes.length} závodníků · ${DB.disciplines.length} disciplín · ${DB.results.length} výkonů`;
+
+  let files = null;
+  try {
+    files = [
+      new File([p.csv], p.csvName, { type: 'text/csv' }),
+      new File([p.backup], p.jsonName, { type: 'application/json' })
+    ];
+  } catch (e) { files = null; }
+
+  if (files && navigator.canShare && navigator.canShare({ files })) {
+    navigator.share({ files, title: subject, text: body })
+      .then(() => toast('Odesláno.'))
+      .catch(err => { if (err && err.name !== 'AbortError') mailFallback(p, subject, body); });
+    return;
+  }
+  mailFallback(p, subject, body);
+}
+
+function mailFallback(p, subject, body) {
+  download(p.csvName, p.csv);
+  setTimeout(() => download(p.jsonName, p.backup, 'application/json'), 900);
+  setTimeout(() => {
+    const to = (DB.settings.email || '').trim();
+    location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}`
+      + `&body=${encodeURIComponent(body + '\n\n(Oba soubory najdeš ve Souborech ve složce Stažené — přilož je k této zprávě.)')}`;
+  }, 1800);
+  toast('Soubory stažené, otevírám poštu.');
+}
+
+function mergeDB(d) {
+  const mapA = {}, mapD = {};
+  (d.athletes || []).forEach(a => {
+    const same = DB.athletes.find(x => x.id === a.id ||
+      (x.first === a.first && x.last === a.last && (x.group || '') === (a.group || '')));
+    if (same) mapA[a.id] = same.id;
+    else { DB.athletes.push(a); mapA[a.id] = a.id; }
+  });
+  (d.disciplines || []).forEach(x => {
+    const same = DB.disciplines.find(y => y.id === x.id || y.name === x.name);
+    if (same) { mapD[x.id] = same.id; if (!same.grades && x.grades) same.grades = x.grades; }
+    else { DB.disciplines.push(x); mapD[x.id] = x.id; }
+  });
+  let n = 0;
+  (d.results || []).forEach(r => {
+    const aid = mapA[r.athleteId], did = mapD[r.discId];
+    if (!aid || !did) return;
+    if (DB.results.some(z => z.id === r.id)) return;
+    if (DB.results.some(z => z.athleteId === aid && z.discId === did && z.date === r.date && z.value === r.value)) return;
+    DB.results.push(Object.assign({}, r, { athleteId: aid, discId: did }));
+    n++;
+  });
+  save();
+  return { results: n, athletes: DB.athletes.length, discs: DB.disciplines.length };
+}
+
+let pendingImport = null;
+
+/* ============================================================
+   OBSLUHA UDÁLOSTÍ
+   ============================================================ */
+document.addEventListener('click', e => {
+  const tabBtn = e.target.closest('[data-tab]');
+  if (tabBtn) { state.tab = tabBtn.dataset.tab; render(); return; }
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  const act = b.dataset.act, id = b.dataset.id;
+
+  switch (act) {
+    case 'close-sheet': closeSheet(); break;
+    case 'confirm-ok': if (window.__confirmOk) window.__confirmOk(); break;
+    case 'go-athletes': state.tab = 'athletes'; render(); break;
+
+    /* měření */
+    case 'pick-disc': state.discId = id; swReset(); render(); break;
+    case 'change-disc':
+      if (sw.phase === 'running' || sw.phase === 'review') {
+        confirmSheet('Zahodit měření?', 'Zaznamenané časy nejsou uložené.', 'Zahodit', () => { swReset(); state.discId = null; render(); }, true);
+      } else { swReset(); state.discId = null; render(); }
+      break;
+    case 'sw-start': swStart(); break;
+    case 'sw-mark': swMark(); break;
+    case 'sw-stop': swStop(); break;
+    case 'sw-undo': swUndo(); break;
+    case 'sw-cancel': swReset(); render(); break;
+    case 'sw-save': swSave(); break;
+    case 'sw-discard': confirmSheet('Zahodit měření?', 'Všechny zaznamenané časy zmizí.', 'Zahodit', () => { swReset(); render(); }, true); break;
+    case 'lineup-toggle': {
+      const i = sw.lineup.indexOf(id);
+      if (i >= 0) sw.lineup.splice(i, 1); else sw.lineup.push(id);
+      render(); break;
+    }
+    case 'lineup-clear': sw.lineup = []; render(); break;
+    case 'split-time': splitEditSheet(id); break;
+    case 'split-save': {
+      const s = sw.splits.find(x => x.id === id);
+      const ms = parseTime($('#sVal').value);
+      if (ms == null) { toast('Čas nedává smysl. Zkus třeba 12,34.'); break; }
+      s.ms = ms; closeSheet();
+      sw.splits.sort((a, c) => a.ms - c.ms);
+      $('#reviewSplits').innerHTML = reviewSplitsHTML();
+      break;
+    }
+    case 'split-del':
+      sw.splits = sw.splits.filter(x => x.id !== id);
+      $('#reviewSplits').innerHTML = reviewSplitsHTML();
+      break;
+    case 'split-add':
+      sw.splits.push({ id: uid(), ms: sw.elapsed || 0, athleteId: null });
+      $('#reviewSplits').innerHTML = reviewSplitsHTML();
+      splitEditSheet(sw.splits[sw.splits.length - 1].id);
+      break;
+    case 'manual-open': manualSheet(); break;
+    case 'manual-save': {
+      const d = discById(state.discId);
+      const aId = $('#mAth').value, ms = parseTime($('#mVal').value);
+      if (!aId || ms == null) { toast('Vyber závodníka a zadej platný čas.'); break; }
+      const r = addResult({ athleteId: aId, discId: d.id, value: Math.round(ms) });
+      toast(fullName(athleteById(aId)) + ' · ' + fmtTime(ms, d.dec) + (r.prev && r.isPB ? ' · osobní rekord!' : ''));
+      $('#mVal').value = ''; $('#mVal').focus();
+      break;
+    }
+    case 'entry-open': entrySheet(id); break;
+    case 'entry-save': entrySave(id, b.dataset.next || null); break;
+
+    /* závodníci */
+    case 'ath-add': athSheet(null); break;
+    case 'ath-edit': athSheet(id); break;
+    case 'ath-save': {
+      const first = $('#aFirst').value.trim(), last = $('#aLast').value.trim();
+      const group = $('#aGroup').value.trim(), note = $('#aNote').value.trim();
+      if (!first && !last) { toast('Vyplň aspoň jedno jméno.'); break; }
+      if (id) Object.assign(athleteById(id), { first, last, group, note });
+      else DB.athletes.push({ id: uid(), first, last, group, note });
+      DB.settings.lastGroup = group; save(); closeSheet(); render();
+      toast(id ? 'Uloženo.' : fullName({ first, last }) + ' přidán.');
+      break;
+    }
+    case 'ath-del': {
+      const a = athleteById(id);
+      confirmSheet('Smazat závodníka?', `${fullName(a)} i všechny jeho výkony budou pryč.`, 'Smazat', () => {
+        DB.athletes = DB.athletes.filter(x => x.id !== id);
+        DB.results = DB.results.filter(r => r.athleteId !== id);
+        sw.lineup = sw.lineup.filter(x => x !== id);
+        save(); render(); toast('Smazáno.');
+      }, true);
+      break;
+    }
+    case 'import-open': importSheet(); break;
+    case 'import-run': {
+      const txt = $('#csvText').value;
+      if (!txt.trim()) { toast('Vyber soubor nebo vlož seznam.'); break; }
+      const n = importAthletes(txt, $('#csvGroup').value.trim());
+      closeSheet(); render();
+      toast(n ? `Naimportováno ${n} závodníků.` : 'Nic nového k importu — už tam všichni jsou.');
+      break;
+    }
+    case 'export-ath':
+      download('zavodnici.csv', toCSV([['Jméno', 'Příjmení', 'Skupina', 'Poznámka'],
+        ...athletesIn('').map(a => [a.first, a.last, a.group || '', a.note || ''])]));
+      break;
+
+    /* disciplíny */
+    case 'disc-add': discSheet(null); break;
+    case 'disc-edit': discSheet(id); break;
+    case 'disc-save': {
+      const name = $('#dName').value.trim();
+      if (!name) { toast('Disciplína potřebuje název.'); break; }
+      const type = $('#dType').value;
+      const grades = [1, 2, 3, 4].map(i => parseNum($('#dG' + i).value));
+      const o = {
+        name, type,
+        unit: type === 'time' ? 's' : ($('#dUnit').value.trim() || 'b'),
+        dec: Number($('#dDec').value), attempts: Number($('#dAtt').value),
+        better: $('#dBetter').value,
+        grades: grades.some(g => g != null) ? grades : null
+      };
+      if (id) Object.assign(discById(id), o);
+      else DB.disciplines.push(Object.assign({ id: uid() }, o));
+      save(); closeSheet(); render(); toast('Uloženo.');
+      break;
+    }
+    case 'disc-del': {
+      const d = discById(id);
+      confirmSheet('Smazat disciplínu?', `${d.name} i všechny zapsané výkony budou pryč.`, 'Smazat', () => {
+        DB.disciplines = DB.disciplines.filter(x => x.id !== id);
+        DB.results = DB.results.filter(r => r.discId !== id);
+        if (state.discId === id) { state.discId = null; swReset(); }
+        save(); render(); toast('Smazáno.');
+      }, true);
+      break;
+    }
+
+    /* výsledky */
+    case 'res-open': resSheet(id); break;
+    case 'res-save': {
+      const r = DB.results.find(x => x.id === id), d = discById(r.discId);
+      const v = parseValue(d, $('#rVal').value);
+      if (v == null) { toast('Hodnota nedává smysl.'); break; }
+      r.value = d.type === 'time' ? Math.round(v) : v;
+      r.date = $('#rDate').value || r.date;
+      r.note = $('#rNote').value.trim();
+      save(); closeSheet(); render(); toast('Uloženo.');
+      break;
+    }
+    case 'res-del': {
+      const r = DB.results.find(x => x.id === id);
+      confirmSheet('Smazat výkon?', 'Tenhle záznam zmizí.', 'Smazat', () => {
+        DB.results = DB.results.filter(x => x.id !== id);
+        save(); render(); toast('Smazáno.');
+      }, true);
+      break;
+    }
+    case 'res-mode': state.resMode = b.dataset.m; render(); break;
+    case 'export-res': {
+      const d = discById(state.resDisc);
+      let rows = DB.results.filter(r => r.discId === state.resDisc);
+      if (state.group) rows = rows.filter(r => { const a = athleteById(r.athleteId); return a && a.group === state.group; });
+      rows.sort((a, c) => d.better === 'lower' ? a.value - c.value : c.value - a.value);
+      download(`vysledky-${noAcc(d.name).replace(/[^a-z0-9]+/g, '-')}.csv`, toCSV(resultRows(rows)));
+      break;
+    }
+    case 'export-all':
+      if (!DB.results.length) { toast('Zatím není co exportovat.'); break; }
+      download(`vykony-${todayISO()}.csv`, toCSV(resultRows(DB.results.slice().sort((a, c) => (a.date || '').localeCompare(c.date || '')))));
+      break;
+    case 'export-json':
+      download(`zaloha-vykony-${todayISO()}.json`, JSON.stringify(DB), 'application/json');
+      break;
+    case 'send-mail': sendByMail(); break;
+    case 'import-json':
+      pendingImport = null;
+      openSheet('Načíst zálohu', `
+        <p class="muted small" style="margin-top:0">Vyber soubor <b>zaloha-vykony-….json</b> — třeba přílohu z e-mailu, kterou sis nejdřív uložil do Souborů.</p>
+        <label class="field"><span>Soubor zálohy</span><input type="file" id="jsonFile" accept=".json,application/json"></label>
+        <div id="impInfo"></div>`);
+      break;
+    case 'import-replace':
+      if (!pendingImport) break;
+      DB = Object.assign(freshDB(), pendingImport);
+      DB.settings = Object.assign(freshDB().settings, pendingImport.settings || {});
+      state.discId = null; swReset(); save(); closeSheet(); render();
+      toast(`Nastaveno: ${DB.athletes.length} závodníků, ${DB.disciplines.length} disciplín, ${DB.results.length} výkonů.`);
+      pendingImport = null;
+      break;
+    case 'import-merge': {
+      if (!pendingImport) break;
+      const r = mergeDB(pendingImport);
+      state.discId = null; swReset(); closeSheet(); render();
+      toast(`Sloučeno · ${r.athletes} závodníků, ${r.discs} disciplín, přibylo ${r.results} výkonů.`);
+      pendingImport = null;
+      break;
+    }
+
+    /* nastavení */
+    case 'set-toggle': {
+      const k = b.dataset.k;
+      DB.settings[k] = !DB.settings[k];
+      save(); render();
+      if (k === 'sound' && DB.settings.sound) beep(880, 90);
+      break;
+    }
+    case 'wipe':
+      confirmSheet('Smazat všechna data?', 'Závodníci, disciplíny i všechny výkony budou nenávratně pryč. Nejdřív si radši ulož zálohu.', 'Smazat vše', () => {
+        DB = freshDB(); state.discId = null; swReset(); save(); render(); toast('Hotovo, čistý stůl.');
+      }, true);
+      break;
+  }
+});
+
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'mDate') { state.date = t.value; render(); }
+  if (t.id === 'resDisc') { state.resDisc = t.value; render(); }
+  if (t.id === 'setCd') { DB.settings.countdown = Number(t.value); save(); render(); }
+  if (t.dataset && t.dataset.split) {
+    const s = sw.splits.find(x => x.id === t.dataset.split);
+    if (s) s.athleteId = t.value || null;
+  }
+  if (t.id === 'csvFile') readFile(t.files[0], txt => { $('#csvText').value = txt; toast('Soubor načten, zkontroluj a potvrď.'); });
+  if (t.id === 'setMail') { DB.settings.email = t.value.trim(); save(); }
+  if (t.id === 'jsonFile') readFile(t.files[0], txt => {
+    try {
+      const d = JSON.parse(txt);
+      if (!d || !Array.isArray(d.athletes) || !Array.isArray(d.disciplines)) throw 0;
+      pendingImport = d;
+      const grades = d.disciplines.filter(x => x.grades && x.grades.some(g => g != null)).length;
+      $('#impInfo').innerHTML = `<div class="card" style="margin-top:4px">
+          <div class="name">Záloha ${d.exported ? 'z ' + czDate(String(d.exported).slice(0, 10)) : ''}</div>
+          <div class="sub muted small">${d.athletes.length} závodníků · ${d.disciplines.length} disciplín${grades ? ' (z toho ' + grades + ' se známkovými limity)' : ''} · ${(d.results || []).length} výkonů</div>
+        </div>
+        <button class="btn primary" data-act="import-replace">Nahradit vše zálohou</button>
+        <button class="btn" data-act="import-merge" style="margin-top:10px">Přidat k současným datům</button>
+        <p class="muted tiny" style="margin-top:12px">Sloučení nepřepíše, co už máš — doplní chybějící závodníky, disciplíny i výkony a přeskočí duplicity.</p>`;
+    } catch (err) { toast('Tohle není platná záloha.'); }
+  });
+});
+
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'athSearch') { state.athFilter = t.value; const l = $('#athList'); if (l) l.innerHTML = athListHTML(); }
+  if (t.id === 'mSession') state.session = t.value;
+});
+
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-act^="group-"]');
+  if (!c) return;
+  state.group = c.dataset.g;
+  DB.settings.lastGroup = state.group; save();
+  render();
+});
+
+/* pojistka: nechtěné opuštění běžícího měření */
+window.addEventListener('beforeunload', e => {
+  if (sw.phase === 'running' || (sw.phase === 'review' && sw.splits.length)) { e.preventDefault(); e.returnValue = ''; }
+});
+
+/* ---------- start ---------- */
+renderTabs();
+render();
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    try { navigator.serviceWorker.register('sw.js').catch(() => { }); } catch (e) { }
+  });
+}
+
+</script>
+</body>
+</html>
