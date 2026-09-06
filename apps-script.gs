@@ -100,6 +100,7 @@ function sync(req) {
     writeSheet('Závodníci', s.athletes);
     writeSheet('Disciplíny', s.disciplines);
     writeSheet('Výkony', s.results);
+    writeSheet('Známkování', s.scales);
     writeSheet('Nastavení', s.settings);
     writeRaw(req.raw || '');
     var now = new Date().toISOString();
