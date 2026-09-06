@@ -6,33 +6,25 @@ Aplikace pro měření atletických disciplín u skupiny závodníků. Načteš 
 
 ## 1. Instalace na iPhone
 
-Aplikace není z App Store — je to webová aplikace (PWA), která se přidá na plochu a od té chvíle se chová jako běžná appka: celá obrazovka, vlastní ikona, funguje bez signálu.
+Aplikace není z App Store — je to webová aplikace (PWA), která se přidá na plochu a od té chvíle se chová jako běžná appka: celá obrazovka, vlastní ikona, funguje bez signálu. Celý kód je v jediném souboru **`index.html`**, ostatní soubory jen doplňují ikonu a offline režim.
 
-### Varianta A — plnohodnotná appka (doporučeno)
+### Varianta A — GitHub Pages (doporučeno)
 
-Potřebuješ soubory `index.html`, `app.js`, `sw.js`, `manifest.webmanifest` a tři ikony (vše je v `vykony-app.zip`) na nějaké HTTPS adrese. Nejjednodušší způsoby:
-
-**GitHub Pages** (zdarma, cca 5 minut)
-1. Na github.com vytvoř nový veřejný repozitář, např. `vykony`.
-2. Rozbal ZIP a všechny soubory nahraj do kořene repozitáře (Add file → Upload files).
+1. Na github.com vytvoř nový **veřejný** repozitář, např. `vykony`.
+2. Rozbal `vykony-app.zip` a nahraj **obsah složky** do kořene repozitáře (Add file → Upload files). V kořeni musí ležet `index.html`, ne složka, jinak Pages nic nezobrazí.
 3. Settings → Pages → Source: *Deploy from a branch*, branch `main`, složka `/ (root)`, Save.
 4. Za minutu běží na `https://tvojejmeno.github.io/vykony/`.
+5. Na iPhonu otevři adresu v **Safari** → ikona sdílení → **Přidat na plochu**. Musí to být Safari, Chrome na iOS přidání na plochu neumí.
 
-**Netlify Drop** (bez registrace): na `app.netlify.com/drop` přetáhneš rozbalenou složku a hned dostaneš adresu.
+Když budeš appku později upravovat, stačí v repozitáři nahradit `index.html` a v `sw.js` zvýšit číslo u `const V`, aby si telefon stáhl novou verzi.
 
-Pak na iPhonu: otevři adresu v **Safari** → ikona sdílení → **Přidat na plochu**. Musí to být Safari, Chrome na iOS přidání na plochu neumí.
+### Varianta B — bez hostingu
 
-### Varianta B — jeden soubor bez hostingu
-
-Soubor `vykony-standalone.html` má v sobě všechno (HTML, styly i kód, 80 kB). Ulož ho do Souborů na iPhonu a otevírej poklepáním — otevře se v Safari a funguje.
-
-Omezení: takto otevřená stránka nemá stálou adresu, takže **iOS jí nemusí zachovat uložená data** mezi otevřeními a nejde přidat na plochu. Používej ji na vyzkoušení; pro ostrý provoz jdi cestou A. Pokud přesto zůstaneš u varianty B, po každém měření si udělej export CSV nebo zálohu (Nastavení → Data).
+`index.html` funguje i sám o sobě: ulož ho do Souborů na iPhonu a otevírej poklepáním. Vhodné na rychlé vyzkoušení. iOS ale takto otevřené stránce **nemusí zachovat uložená data** mezi otevřeními a nejde přidat na plochu — pro ostrý provoz jdi cestou A.
 
 ### Varianta C — přes počítač v místní síti
 
-Ve složce se soubory spusť `python3 -m http.server 8000` a na iPhonu ve stejné Wi-Fi otevři `http://IP-počítače:8000/`. Vhodné na testování; Safari umožní i přidání na plochu, ale offline cache se bez HTTPS chová hůř.
-
----
+Ve složce se soubory spusť `python3 -m http.server 8000` a na iPhonu ve stejné Wi-Fi otevři `http://IP-počítače:8000/`. Vhodné na testování; offline cache se ale bez HTTPS chová hůř.
 
 ## 2. Co aplikace umí
 
@@ -64,6 +56,13 @@ Ve složce se soubory spusť `python3 -m http.server 8000` a na iPhonu ve stejn�
 - U každého výkonu známka (pokud jsou limity vyplněné) a označení osobního rekordu.
 - Detail výkonu: historie závodníka v dané disciplíně, úprava hodnoty a data, poznámka, smazání.
 - Export CSV — jedné tabulky nebo všech dat. Soubor je se středníky a s BOM, takže se v českém Excelu otevře rovnou správně rozdělený do sloupců a s háčky.
+
+**Google tabulka**
+- Všechno se dá uložit do tvé Google tabulky: závodníci, disciplíny se známkovými limity, všechny výkony i nastavení. Nastavení a zapojení popisuje kapitola 5.
+- **Uložit do tabulky** přepíše čtyři listy — `Závodníci`, `Disciplíny`, `Výkony`, `Nastavení` — takže obsah tabulky vždy přesně odpovídá tomu, co máš v telefonu.
+- **Ukládat průběžně** pošle data samo pár vteřin po každé změně, takže tabulka je aktuální bez jediného klepnutí navíc.
+- **Načíst z tabulky** stáhne stav zpátky do telefonu — buď nahradí vše (nový telefon), nebo doplní jen to, co chybí (spojení dat od dvou učitelů).
+- Bez signálu se nic neztratí: měříš dál do telefonu a odešle se to, až budeš online.
 
 **Odeslání e-mailem**
 - Tlačítko **Odeslat e-mailem** (v Nastavení i pod Výsledky) připraví dvě přílohy a otevře systémové sdílení, odkud vybereš Mail, Zprávy, WhatsApp nebo uložení do Souborů:
@@ -114,19 +113,59 @@ U celých jmen se poslední slovo bere jako příjmení. V dialogu importu můž
 
 ---
 
-## 5. Jak je to udělané
+## 5. Napojení na Google tabulku
+
+Statická stránka na GitHubu se nemůže sama přihlásit k tvému Google účtu, a tedy ani zapisovat do tabulky. Prostředníkem je proto malý skript **Google Apps Script**, který k tabulce připojíš. Skript běží pod tvým účtem, má do tabulky přístup a zveřejní adresu, na kterou aplikace posílá data. Nastavuje se jednou, cca 5 minut.
+
+### Nasazení skriptu
+
+1. Otevři tabulku → **Rozšíření → Apps Script**.
+2. Smaž ukázkový kód, vlož celý obsah souboru `apps-script.gs` a ulož (ikona diskety).
+3. **Nasadit → Nové nasazení**, typ **Webová aplikace**:
+   - Spustit jako: **Já**
+   - Kdo má přístup: **Kdokoli**
+4. Google upozorní, že skript není ověřený. Je tvůj vlastní — *Rozšířené* → *Přejít na projekt* → *Povolit*.
+5. Zkopíruj vzniklou adresu, která končí na `/exec`.
+6. V aplikaci: **Nastavení → Google tabulka** → vlož adresu → **Uložit do tabulky**.
+
+Pokud si nejsi jistý, že skript běží, otevři adresu `/exec` v prohlížeči. Má se objevit `{"ok":true,...}`. Když se místo toho zobrazí přihlašovací stránka Google, není nasazený pro „Kdokoli".
+
+Adresa `/exec` je sice veřejná, ale nezveřejňuje tabulku — kdo ji nemá, k datům se nedostane. Přesto ji nedávej do veřejného repozitáře; v aplikaci je uložená jen v telefonu.
+
+### Co v tabulce vznikne
+
+| List | Obsah |
+|---|---|
+| `Závodníci` | id, jméno, příjmení, skupina, poznámka |
+| `Disciplíny` | způsob měření, jednotka, počet pokusů, orientace a všechny čtyři známkové limity |
+| `Výkony` | datum, závodník, disciplína, výkon jako text (`12,34`) i jako **číslo** pro řazení a grafy, známka, pokusy, označení měření |
+| `Nastavení` | přehled voleb a čas poslední synchronizace |
+| `_data` | skrytý list s úplnou zálohou, ze které se stav načítá zpátky do telefonu |
+
+Listy se při každém odeslání přepisují celé, takže tabulka je vždy přesným obrazem aplikace. **Ruční úpravy v listech se proto při dalším odeslání ztratí** — chceš-li si v tabulce dělat vlastní výpočty a grafy, založ si na ně samostatný list a odkazuj se do těchto čtyř.
+
+### Přenos mezi telefony
+
+Adresu skriptu vlož do obou telefonů. První pošle data (*Uložit do tabulky*), druhý si je stáhne (*Načíst z tabulky*) a zvolí:
+
+- **Nahradit vše** — telefon bude mít přesně to, co je v tabulce.
+- **Přidat k současným datům** — doplní jen chybějící; závodníky a disciplíny spáruje podle jména, duplicitní výkony přeskočí. Tímhle spojíš měření dvou učitelů z různých stanovišť.
+
+Pozor na pořadí: kdo naposledy klepne na *Uložit do tabulky*, ten přepíše obsah tabulky svým stavem. Při měření ve dvou tedy nejdřív jeden odešle, druhý si data načte a sloučí, a teprve pak odešle výsledek zpátky.
+
+## 6. Jak je to udělané
 
 ### Technologie
 Čistý HTML, CSS a JavaScript, žádný framework ani knihovna, žádné volání na internet. Důvod: aplikace musí nastartovat okamžitě a fungovat na stadionu bez signálu, a za pár let nemá co přestat fungovat kvůli závislostem.
 
 | Soubor | Obsah |
 |---|---|
-| `index.html` | kostra rozhraní a všechny styly |
-| `app.js` | veškerá logika (~1 100 řádků) |
+| `index.html` | celá aplikace — rozhraní, styly i logika (~1 400 řádků) |
 | `sw.js` | service worker — offline cache |
 | `manifest.webmanifest` | název, ikony, režim celé obrazovky |
 | `icon-*.png` | ikony pro plochu |
-| `vykony-standalone.html` | vše slepené do jednoho souboru |
+| `apps-script.gs` | kód pro Apps Script v Google tabulce |
+| `vzor-zavodnici.csv` | ukázka formátu pro import |
 
 ### Ukládání dat
 Celá databáze je jeden objekt uložený jako JSON v `localStorage` pod klíčem `vykony.db.v1`. Zápis je odložený o 120 ms, aby rychlé klepání neblokovalo rozhraní. Když prohlížeč úložiště zakáže (anonymní režim, přísná nastavení), aplikace nespadne — jede dál v paměti a v Nastavení se objeví červené upozornění.
@@ -151,6 +190,17 @@ Zobrazení běžícího času aktualizuje `requestAnimationFrame`, ale **naměř
 
 Displej drží rozsvícený Screen Wake Lock API; při návratu z pozadí se zámek automaticky obnovuje. Zvuk volitelné startovní signalizace generuje Web Audio API (obdélníková vlna), takže není potřeba žádný zvukový soubor.
 
+### Komunikace s tabulkou
+Aplikace posílá na adresu `/exec` jeden `POST` s hlavičkou `text/plain`. To je záměr: kdyby se poslalo `application/json`, prohlížeč by nejdřív vyslal kontrolní dotaz OPTIONS, na který Apps Script neumí odpovědět, a požadavek by skončil na CORS. Tělo je stejné JSON, jen deklarované jako prostý text.
+
+Posílají se dvě věci najednou: **hotové tabulky** k zapsání do listů (aplikace je připraví, skript je jen zapíše) a **úplná záloha** jako JSON řetězec. Záloha se ukládá po 40 000 znacích do skrytého listu `_data`, protože buňka Google tabulky pobere 50 000 znaků. Díky tomu je zpětné načtení bezeztrátové — nemusí se nic dolovat zpátky z naformátovaných buněk.
+
+Skript si při zápisu bere `LockService`, aby dva telefony odesílající naráz nepřepsaly data uprostřed zápisu.
+
+Automatické ukládání je navěšené na jediném místě — na funkci `save()`, kterou volá každá změna dat. Odeslání se odloží o 4 sekundy, takže rychlé zapisování celé třídy skončí jedním požadavkem místo třiceti. Zápis, který provede sama synchronizace (čas poslední synchronizace), je označený příznakem `suspend`, aby se nespustila nekonečná smyčka.
+
+Selhání sítě nikdy neshodí uložení dat: nejdřív se zapíše do telefonu, teprve pak se zkouší odeslat. Když odeslání selže, zůstane hláška v Nastavení a další pokus přijde s příští změnou nebo při návratu online.
+
 ### Odesílání souborů
 Webová stránka nemůže sama přiložit soubor k e-mailu (`mailto:` přílohy neumí). Používá se proto **Web Share API Level 2** — aplikace vyrobí dva objekty `File` v paměti a předá je systémovému sdílení iOS, které je vloží do Mailu jako skutečné přílohy. Sdílení musí být spuštěné přímo z dotyku, proto se soubory sestavují synchronně ještě před voláním.
 
@@ -173,7 +223,7 @@ Vzhled je stavěný na použití venku a jednou rukou: tmavé pozadí kvůli či
 
 ---
 
-## 6. Když něco nefunguje
+## 7. Když něco nefunguje
 
 | Problém | Řešení |
 |---|---|
@@ -183,14 +233,19 @@ Vzhled je stavěný na použití venku a jednou rukou: tmavé pozadí kvůli či
 | Displej zhasíná | Zkontroluj Nastavení → *Nechat displej svítit*. Na starších verzích iOS (pod 16.4) tato funkce není dostupná — nastav delší automatické zamykání v systému. |
 | Excel zobrazí CSV v jednom sloupci | Otevři přes Data → Načíst z textu a vyber středník jako oddělovač. |
 | Sdílení nenabídne Mail s přílohami | Starší iOS neumí sdílet soubory. Appka místo toho oba soubory stáhne do Souborů → Stažené a otevře prázdný e-mail — přílohy k němu přidáš klipsem. |
+| Tabulka hlásí, že skript nevrátil data | Nasazení není nastavené na „Kdokoli". Nasadit → Spravovat nasazení → tužka → oprav přístup → Nasadit. |
+| Do tabulky se nic nezapsalo | Otevři adresu `/exec` v prohlížeči — musí vrátit `{"ok":true...}`. Zkontroluj taky `SHEET_ID` v prvním řádku skriptu. |
+| Po úpravě skriptu se chová postaru | Apps Script běží ve verzi, která byla nasazená. Nasadit → Spravovat nasazení → tužka → Verze: **Nová verze**. |
+| Ruční úpravy v listech zmizely | Listy se při každém odeslání přepisují celé. Vlastní výpočty si dej na samostatný list. |
 | Po aktualizaci souborů se změny neprojeví | Service worker drží starou verzi. Zvyš `V` v `sw.js`, nebo appku smaž z plochy a přidej znovu. |
 
 ---
 
-## 7. Kam to jde dál rozšířit
+## 8. Kam to jde dál rozšířit
 
 - Mezičasy pro jednoho běžce (rozdělení `splits` podle typu disciplíny — datový model to už umožňuje).
 - Bodovací tabulky IAAF nebo školní normy místo pevných známkovacích hranic.
 - Vývoj výkonu v čase jako graf u každého závodníka (historie se už ukládá).
 - Družstva a součty bodů za štafety.
+- Automatické načtení z tabulky při startu aplikace (teď se načítá jen na vyžádání, aby se nepřepsalo rozměřené měření).
 - Nativní verze pro iOS ve SwiftUI — vyžaduje Mac s Xcode a každých 7 dní přeinstalování, pokud nemáš placený vývojářský účet. Datový model by šel převzít beze změny.
