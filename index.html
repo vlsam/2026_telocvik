@@ -21,6 +21,9 @@
   --ink:#eef2f6;
   --muted:#8d9aab;
   --signal:#ffd400;      /* stopky, primární akce */
+  --boy:#5aa9ff;         /* chlapci */
+  --girl:#ff7ab8;        /* dívky */
+  --warn:#ffc233;        /* upozornění u poznámky */
   --go:#3ddc84;          /* start */
   --stop:#ff4d3d;        /* stop, mazání */
   --lane:#ffffff;
@@ -121,6 +124,25 @@ textarea{min-height:90px;resize:vertical}
 .item .grow{flex:1;min-width:0}
 .item .name{font-weight:560;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .item .sub{font-size:13px;color:var(--muted)}
+.item .who{display:flex;align-items:center;gap:9px;min-width:0}
+
+/* ikona pohlaví */
+.sexico{width:21px;height:21px;flex:0 0 21px;fill:currentColor;color:var(--muted)}
+.sexico.m{color:var(--boy)}
+.sexico.f{color:var(--girl)}
+
+/* poznámka u závodníka */
+.warn{flex:0 0 auto;width:34px;height:34px;display:flex;align-items:center;justify-content:center;margin:-6px 0}
+.warn svg{width:21px;height:21px}
+.warn .tri{fill:var(--warn)}
+.warn .mark{fill:#241c00}
+
+/* řádka známek pod jménem */
+.gr{font-weight:700;font-variant-numeric:tabular-nums}
+.gr1{color:#3ddc84}
+.gr2{color:#a9e06a}
+.gr3{color:var(--signal)}
+.gr4{color:#ff8a5c}
 .rank{width:30px;text-align:right;color:var(--muted);font-weight:700}
 .rank.m1{color:var(--signal)}
 .val{font-weight:700;font-size:18px}
@@ -373,8 +395,38 @@ function parseValue(d, str) { return d.type === 'time' ? parseTime(str) : parseN
 /* ---------- práce s daty ---------- */
 const athleteById = id => DB.athletes.find(a => a.id === id);
 const discById = id => DB.disciplines.find(d => d.id === id);
-const fullName = a => a ? ((a.first || '') + ' ' + (a.last || '')).trim() : '—';
-const sortName = a => ((a.last || '') + ' ' + (a.first || '')).trim().toLowerCase();
+/* Zobrazujeme příjmení první — stejně jako se řadí seznam. */
+const fullName = a => a ? ((a.last || '') + ' ' + (a.first || '')).trim() : '—';
+const sortName = a => fullName(a).toLowerCase();
+const nameWithGroup = a => fullName(a) + (a && a.group ? ' (' + a.group + ')' : '');
+
+/* Ikona pohlaví — modrá chlapci, růžová dívky, šedá když není vyplněno. */
+function sexIcon(a) {
+  const k = a.sex === 'M' ? 'm' : a.sex === 'F' ? 'f' : '';
+  return `<svg class="sexico ${k}" viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="12" cy="7.2" r="4"/><path d="M12 13c-4.2 0-7 2.4-7 5.6V21h14v-2.4c0-3.2-2.8-5.6-7-5.6z"/></svg>`;
+}
+
+/* Trojúhelník s vykřičníkem — závodník má poznámku (třeba zdravotní omezení). */
+function noteFlag(a) {
+  if (!a.note) return '';
+  return `<span class="warn" data-act="ath-note" data-id="${a.id}" role="img" aria-label="Poznámka: ${esc(a.note)}">
+    <svg viewBox="0 0 24 24"><path class="tri" d="M12 2.6 23 21.4H1z"/>
+      <path class="mark" d="M11 9h2v6h-2zm0 7.5h2V19h-2z"/></svg></span>`;
+}
+
+/* Známky za dosavadní výkony, chronologicky. Pomlčka = zatím nic. */
+function gradeStrip(a) {
+  const rs = DB.results.filter(r => r.athleteId === a.id)
+    .sort((x, y) => (x.date || '').localeCompare(y.date || '') || x.created - y.created);
+  if (!rs.length) return '—';
+  const cells = rs.map(r => {
+    const g = gradeFor(discById(r.discId), r.value, a);
+    return g == null ? '<span class="gr" style="color:var(--muted)">–</span>' : `<span class="gr gr${g}">${g}</span>`;
+  });
+  const shown = cells.length > 12 ? ['…'].concat(cells.slice(-12)) : cells;
+  return shown.join(', ');
+}
 
 function groups() {
   const g = new Set(DB.athletes.map(a => (a.group || '').trim()).filter(Boolean));
@@ -768,9 +820,13 @@ function viewField(d) {
     const today = DB.results.filter(r => r.athleteId === a.id && r.discId === d.id && r.date === state.date)
       .sort((x, y) => y.created - x.created)[0];
     return `<button class="item" data-act="entry-open" data-id="${a.id}">
-      <div class="grow"><div class="name">${esc(fullName(a))}</div>
-        <div class="sub">${b ? 'nejlepší ' + fmtValue(d, b.value) : 'zatím bez výkonu'}</div></div>
-      ${today ? `<span class="val">${fmtValue(d, today.value)}</span>` : `<span class="muted">zapsat ›</span>`}
+      <div class="grow who">${sexIcon(a)}
+        <div style="min-width:0">
+          <div class="name">${esc(fullName(a))}</div>
+          <div class="sub">${b ? 'nejlepší ' + fmtValue(d, b.value) : 'zatím bez výkonu'}</div>
+        </div></div>
+      ${noteFlag(a)}
+      ${today ? `<span class="val">${fmtValue(d, today.value)}${gradeBadge(d, today.value, a)}</span>` : `<span class="muted">zapsat ›</span>`}
     </button>`;
   }).join('');
   return measureHeader(d) + (list.length
@@ -794,16 +850,20 @@ function viewAthletes() {
 }
 function athListHTML() {
   const q = state.athFilter.trim().toLowerCase();
-  const list = athletesIn(state.group).filter(a => !q || fullName(a).toLowerCase().includes(q));
+  const list = athletesIn(state.group).filter(a => !q ||
+    ((a.first || '') + ' ' + (a.last || '') + ' ' + (a.last || '') + ' ' + (a.first || '')).toLowerCase().includes(q));
   if (!list.length) return `<div class="empty"><h3>Zatím žádní závodníci</h3>
     <p>Přidej je tlačítkem ＋ nahoře, nebo naimportuj seznam z CSV.</p></div>`;
   return `<div class="list">${list.map(a => {
-    const n = DB.results.filter(r => r.athleteId === a.id).length;
     const miss = !a.sex || !a.year;
     return `<button class="item" data-act="ath-edit" data-id="${a.id}">
-      <div class="grow"><div class="name">${esc(fullName(a))}</div>
-      <div class="sub">${a.group ? esc(a.group) + ' · ' : ''}${a.sex === 'M' ? 'CH' : a.sex === 'F' ? 'D' : '—'}${a.year ? ' · ' + a.year + '. roč.' : ''} · ${n} ${n === 1 ? 'výkon' : (n >= 2 && n <= 4 ? 'výkony' : 'výkonů')}</div></div>
+      <div class="grow who">${sexIcon(a)}
+        <div style="min-width:0">
+          <div class="name">${esc(nameWithGroup(a))}</div>
+          <div class="sub">${gradeStrip(a)}</div>
+        </div></div>
       ${miss ? '<span class="badge" style="color:var(--stop)">doplnit</span>' : ''}
+      ${noteFlag(a)}
       <span class="muted">›</span></button>`;
   }).join('')}</div>`;
 }
@@ -828,7 +888,8 @@ function athSheet(id) {
     </div>
     <label class="field"><span>Skupina nebo třída</span><input type="text" id="aGroup" value="${esc(a.group)}" list="groupList" autocapitalize="characters">
       <datalist id="groupList">${groups().map(g => `<option value="${esc(g)}">`).join('')}</datalist></label>
-    <label class="field"><span>Poznámka</span><input type="text" id="aNote" value="${esc(a.note || '')}"></label>
+    <label class="field"><span>Poznámka — třeba zdravotní omezení; u jména se pak objeví výstražný trojúhelník</span>
+      <input type="text" id="aNote" value="${esc(a.note || '')}"></label>
     <button class="btn primary" data-act="ath-save" data-id="${id || ''}">Uložit</button>
     ${id ? `<button class="btn danger" data-act="ath-del" data-id="${id}" style="margin-top:10px">Smazat závodníka i jeho výkony</button>` : ''}`,
     body => { const f = $('#aFirst', body); if (!id) setTimeout(() => f.focus(), 250); });
@@ -948,8 +1009,9 @@ function viewResults() {
     const a = athleteById(r.athleteId);
     return `<button class="item" data-act="res-open" data-id="${r.id}">
       ${state.resMode === 'rank' ? `<span class="rank ${i === 0 ? 'm1' : ''}">${i + 1}.</span>` : ''}
-      <div class="grow"><div class="name">${esc(fullName(a))}</div>
-        <div class="sub">${a && a.group ? esc(a.group) + ' · ' : ''}${czDate(r.date)}${r.session ? ' · ' + esc(r.session) : ''}</div></div>
+      <div class="grow who">${a ? sexIcon(a) : ''}
+        <div style="min-width:0"><div class="name">${esc(nameWithGroup(a))}</div>
+        <div class="sub">${czDate(r.date)}${r.session ? ' · ' + esc(r.session) : ''}</div></div></div>
       ${gradeBadge(d, r.value, a)}
       <span class="val">${fmtValue(d, r.value)}</span></button>`;
   }).join('')}</div>` : `<div class="empty"><h3>Pro tento výběr nic není</h3></div>`;
@@ -1620,6 +1682,11 @@ document.addEventListener('click', e => {
     case 'entry-save': entrySave(id, b.dataset.next || null); break;
 
     /* závodníci */
+    case 'ath-note': {
+      const a = athleteById(id);
+      if (a && a.note) toast(fullName(a) + ': ' + a.note);
+      break;
+    }
     case 'ath-add': athDraft = null; athSheet(null); break;
     case 'ath-edit': athDraft = null; athSheet(id); break;
     case 'ath-sex':

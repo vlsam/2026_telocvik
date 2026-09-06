@@ -31,7 +31,13 @@ Ve složce se soubory spusť `python3 -m http.server 8000` a na iPhonu ve stejn�
 **Závodníci**
 - Ruční přidání (jméno, příjmení, **pohlaví**, **ročník 1–4**, skupina/třída, poznámka). Pohlaví a ročník rozhodují o známkových limitech, viz kapitola 6.
 - Import CSV — rozpozná i sloupce Pohlaví (M/Ž, CH/D i celá slova) a Ročník, jinak ročník odvodí z čísla ve třídě; poradí si se středníkem, čárkou i tabulátorem, s kódováním UTF-8 i Windows-1250 (typický export z Excelu), s hlavičkou i bez ní. Umí i prostý seznam „Petr Novák“ na řádcích. Duplicity přeskakuje.
-- Export CSV, vyhledávání, filtr podle skupiny.
+- Export CSV, vyhledávání (funguje na jméno i příjmení v libovolném pořadí), filtr podle skupiny.
+
+**Jak vypadá seznam závodníků**
+- Jména jsou v pořadí **příjmení, jméno** a za nimi v závorce třída — tedy `Novák Petr (1.A)`. Stejně se seznam i řadí.
+- Před jménem je ikona pohlaví: **modrá** chlapci, **růžová** dívky, šedá u nevyplněných.
+- Pod jménem je řádka známek za dosavadní výkony v pořadí, jak byly naměřeny — `1, 2, 4`. Pomlčka znamená, že závodník zatím nic neabsolvoval; `–` uvnitř řady je výkon, ke kterému se známka spočítat nedá (chybí limity). Známky jsou barevně odlišené, aby šlo slabší výsledky poznat na první pohled. Delší řada se zkracuje na posledních dvanáct.
+- Napravo je **žlutý trojúhelník s vykřičníkem**, pokud má závodník vyplněnou poznámku — typicky zdravotní omezení. Klepnutím na něj se poznámka vypíše, aniž bys musel otevírat celý záznam. Stejný trojúhelník se ukazuje i na obrazovce měření, takže omezení uvidíš přesně ve chvíli, kdy zapisuješ výkon.
 
 **Disciplíny**
 - Přednastavených 16: 50–1500 m, člunkový běh 4×10 m, skok daleký, vysoký i z místa, hod míčkem, vrh koulí, Cooperův test, shyby, výdrž ve shybu a leh-sedy. Libovolné další si přidáš.
