@@ -59,6 +59,7 @@ Ve složce se soubory spusť `python3 -m http.server 8000` a na iPhonu ve stejn�
 
 **Google tabulka**
 - Všechno se dá uložit do tvé Google tabulky: závodníci, disciplíny se známkovými limity, všechny výkony i nastavení. Nastavení a zapojení popisuje kapitola 5.
+- **Test připojení** kdykoli ověří, že tabulka odpovídá, a ukáže, kolik v ní leží záznamů proti tomu, co máš v telefonu.
 - **Uložit do tabulky** přepíše čtyři listy — `Závodníci`, `Disciplíny`, `Výkony`, `Nastavení` — takže obsah tabulky vždy přesně odpovídá tomu, co máš v telefonu.
 - **Ukládat průběžně** pošle data samo pár vteřin po každé změně, takže tabulka je aktuální bez jediného klepnutí navíc.
 - **Načíst z tabulky** stáhne stav zpátky do telefonu — buď nahradí vše (nový telefon), nebo doplní jen to, co chybí (spojení dat od dvou učitelů).
@@ -117,20 +118,22 @@ U celých jmen se poslední slovo bere jako příjmení. V dialogu importu můž
 
 Statická stránka na GitHubu se nemůže sama přihlásit k tvému Google účtu, a tedy ani zapisovat do tabulky. Prostředníkem je proto malý skript **Google Apps Script**, který k tabulce připojíš. Skript běží pod tvým účtem, má do tabulky přístup a zveřejní adresu, na kterou aplikace posílá data. Nastavuje se jednou, cca 5 minut.
 
+Adresa skriptu i ID tabulky jsou v aplikaci i ve skriptu **už vyplněné**, takže zbývá jen nasadit kód.
+
 ### Nasazení skriptu
 
 1. Otevři tabulku → **Rozšíření → Apps Script**.
-2. Smaž ukázkový kód, vlož celý obsah souboru `apps-script.gs` a ulož (ikona diskety).
-3. **Nasadit → Nové nasazení**, typ **Webová aplikace**:
-   - Spustit jako: **Já**
-   - Kdo má přístup: **Kdokoli**
+2. Smaž, co je v editoru, vlož celý obsah souboru `apps-script.gs` a ulož (ikona diskety).
+3. **Nasadit → Spravovat nasazení** → u existujícího nasazení klepni na **tužku** → Verze: **Nová verze** → **Nasadit**.
+   Pokud tam ještě žádné nasazení nemáš: **Nasadit → Nové nasazení**, typ **Webová aplikace**, *Spustit jako:* **Já**, *Kdo má přístup:* **Kdokoli**.
 4. Google upozorní, že skript není ověřený. Je tvůj vlastní — *Rozšířené* → *Přejít na projekt* → *Povolit*.
-5. Zkopíruj vzniklou adresu, která končí na `/exec`.
-6. V aplikaci: **Nastavení → Google tabulka** → vlož adresu → **Uložit do tabulky**.
+5. V aplikaci: **Nastavení → Google tabulka → Test připojení**. Musí se objevit název tabulky a počty záznamů.
 
-Pokud si nejsi jistý, že skript běží, otevři adresu `/exec` v prohlížeči. Má se objevit `{"ok":true,...}`. Když se místo toho zobrazí přihlašovací stránka Google, není nasazený pro „Kdokoli".
+**Nejčastější důvod, proč se data neukládají:** kód se v editoru uloží, ale nasazení dál běží ve staré verzi. Uložení diskety nestačí — vždy je potřeba krok 3 s volbou *Nová verze*. Adresa `/exec` přitom zůstává stejná.
 
-Adresa `/exec` je sice veřejná, ale nezveřejňuje tabulku — kdo ji nemá, k datům se nedostane. Přesto ji nedávej do veřejného repozitáře; v aplikaci je uložená jen v telefonu.
+Ověřit se to dá i bez telefonu: otevři adresu `/exec` v prohlížeči. Má se objevit `{"ok":true,...}` s názvem tabulky. Přihlašovací stránka Google znamená, že nasazení nemá přístup „Kdokoli".
+
+Adresa `/exec` je sice veřejná, ale nezveřejňuje tabulku — kdo ji nemá, k datům se nedostane. Přesto ji nedávej do veřejného repozitáře; v aplikaci je uložená v telefonu.
 
 ### Co v tabulce vznikne
 
@@ -191,7 +194,13 @@ Zobrazení běžícího času aktualizuje `requestAnimationFrame`, ale **naměř
 Displej drží rozsvícený Screen Wake Lock API; při návratu z pozadí se zámek automaticky obnovuje. Zvuk volitelné startovní signalizace generuje Web Audio API (obdélníková vlna), takže není potřeba žádný zvukový soubor.
 
 ### Komunikace s tabulkou
-Aplikace posílá na adresu `/exec` jeden `POST` s hlavičkou `text/plain`. To je záměr: kdyby se poslalo `application/json`, prohlížeč by nejdřív vyslal kontrolní dotaz OPTIONS, na který Apps Script neumí odpovědět, a požadavek by skončil na CORS. Tělo je stejné JSON, jen deklarované jako prostý text.
+Tohle je na celé aplikaci technicky nejcitlivější místo. Apps Script odpovídá přesměrováním na jinou doménu a ne vždy pošle hlavičky CORS, které prohlížeč vyžaduje, aby směl odpověď vůbec předat stránce. Požadavek přitom klidně proběhne, ale stránka se o výsledku nedozví — a právě v tom stavu to vypadá, že se „nic neukládá".
+
+Aplikace proto zkouší tři cesty a použije první, která projde:
+
+1. **Přímý `fetch`** s hlavičkou `text/plain`. Prostý text je zvolený schválně: `application/json` by vyvolal kontrolní dotaz OPTIONS, na který Apps Script neumí odpovědět. Tělo je normální JSON, jen jinak deklarované.
+2. **Odeslání formulářem** do skrytého rámu. Na klasické odeslání formuláře se CORS nevztahuje, takže data dorazí vždy. Odpověď se ale přečíst nedá, proto po odeslání následuje dotaz na stav a porovná se počet výkonů — teprve shoda znamená úspěch. Když se čísla liší, aplikace to řekne rovnou.
+3. **JSONP pro čtení.** Odpověď se načte jako `<script>`, což CORS neřeší vůbec. Tudy jde *Načíst z tabulky* i *Test připojení*.
 
 Posílají se dvě věci najednou: **hotové tabulky** k zapsání do listů (aplikace je připraví, skript je jen zapíše) a **úplná záloha** jako JSON řetězec. Záloha se ukládá po 40 000 znacích do skrytého listu `_data`, protože buňka Google tabulky pobere 50 000 znaků. Díky tomu je zpětné načtení bezeztrátové — nemusí se nic dolovat zpátky z naformátovaných buněk.
 
@@ -233,6 +242,7 @@ Vzhled je stavěný na použití venku a jednou rukou: tmavé pozadí kvůli či
 | Displej zhasíná | Zkontroluj Nastavení → *Nechat displej svítit*. Na starších verzích iOS (pod 16.4) tato funkce není dostupná — nastav delší automatické zamykání v systému. |
 | Excel zobrazí CSV v jednom sloupci | Otevři přes Data → Načíst z textu a vyber středník jako oddělovač. |
 | Sdílení nenabídne Mail s přílohami | Starší iOS neumí sdílet soubory. Appka místo toho oba soubory stáhne do Souborů → Stažené a otevře prázdný e-mail — přílohy k němu přidáš klipsem. |
+| Do tabulky se nic neukládá | Nastavení → Google tabulka → **Test připojení**. Hláška řekne, co dělat; v devíti z deseti případů chybí nasazení nové verze skriptu. |
 | Tabulka hlásí, že skript nevrátil data | Nasazení není nastavené na „Kdokoli". Nasadit → Spravovat nasazení → tužka → oprav přístup → Nasadit. |
 | Do tabulky se nic nezapsalo | Otevři adresu `/exec` v prohlížeči — musí vrátit `{"ok":true...}`. Zkontroluj taky `SHEET_ID` v prvním řádku skriptu. |
 | Po úpravě skriptu se chová postaru | Apps Script běží ve verzi, která byla nasazená. Nasadit → Spravovat nasazení → tužka → Verze: **Nová verze**. |

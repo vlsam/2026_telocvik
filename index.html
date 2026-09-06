@@ -205,6 +205,8 @@ const czDate = iso => { const p = String(iso || '').split('-'); return p.length 
 
 /* ---------- úložiště ---------- */
 const KEY = 'vykony.db.v1';
+/* Adresa nasazené Apps Script webové aplikace u Google tabulky. */
+const GS_URL = 'https://script.google.com/macros/s/AKfycbxwbvyj15UqhQ12m5xj1HF-P6dikB2A0Fy2r7oKVo-I2Z0aq4UYwa_K7As-aor70lvkCw/exec';
 let storageOK = true;
 
 function readStore() { try { return localStorage.getItem(KEY); } catch (e) { storageOK = false; return null; } }
@@ -227,12 +229,12 @@ function seedDisciplines() {
 
 function freshDB() {
   return {
-    v: 2,
+    v: 3,
     athletes: [],
     disciplines: seedDisciplines(),
     results: [],
     settings: { sound: true, countdown: 0, awake: true, lastGroup: '', email: '',
-      gsUrl: '', gsAuto: false, gsLast: '',
+      gsUrl: GS_URL, gsAuto: true, gsLast: '',
       gsSheet: 'https://docs.google.com/spreadsheets/d/1KPsHM_cYwhb_cKvOa_pmqPV36Lu_r-j1hIusruUktzE' }
   };
 }
@@ -246,6 +248,10 @@ let DB;
     DB = Object.assign(freshDB(), d);
     DB.settings = Object.assign(freshDB().settings, d.settings || {});
     if ((d.v || 1) < 2) { DB.settings.countdown = 0; DB.v = 2; }   // start je nově okamžitý
+    if ((d.v || 1) < 3) {                                          // doplnění adresy tabulky
+      if (!DB.settings.gsUrl) DB.settings.gsUrl = GS_URL;
+      DB.settings.gsAuto = true; DB.v = 3;
+    }
   } catch (e) { DB = freshDB(); }
 })();
 
@@ -869,7 +875,10 @@ function viewSettings() {
       <button class="btn primary" data-act="gs-push" ${gs.busy ? 'disabled' : ''}>${gs.busy ? 'Odesílám…' : 'Uložit do tabulky'}</button>
       <button class="btn" data-act="gs-pull" ${gs.busy ? 'disabled' : ''}>Načíst z tabulky</button>
     </div>
-    <button class="btn ghost" data-act="gs-open" style="margin-top:10px">Otevřít tabulku</button>
+    <div class="btn-row" style="margin-top:10px">
+      <button class="btn ghost" data-act="gs-test" ${gs.busy ? 'disabled' : ''}>Test připojení</button>
+      <button class="btn ghost" data-act="gs-open">Otevřít tabulku</button>
+    </div>
     <p class="${gs.error ? 'small' : 'muted tiny'}" style="margin-top:12px;${gs.error ? 'color:var(--stop)' : ''}">
       ${gs.error ? esc(gs.error) : (DB.settings.gsLast
         ? 'Naposledy uloženo ' + new Date(DB.settings.gsLast).toLocaleString('cs-CZ') + '.'
@@ -1222,43 +1231,89 @@ function gsSheetsPayload() {
       ['Poslední synchronizace', new Date().toLocaleString('cs-CZ')]]
   };
 }
-async function gsCall(action, extra, blindOk) {
-  const url = (DB.settings.gsUrl || '').trim();
-  if (!gsReady()) throw new Error('Vyplň adresu skriptu (končí na /exec).');
-  const body = JSON.stringify(Object.assign({ action }, extra || {}));
-  let res;
-  try {
-    res = await fetch(url, {
-      method: 'POST', mode: 'cors', redirect: 'follow',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body
-    });
-  } catch (err) {
-    if (blindOk) {   // prohlížeč nepustil odpověď – zkusíme aspoň odeslat naslepo
-      try {
-        await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body });
-        return { ok: true, blind: true };
-      } catch (e2) { }
-    }
-    throw new Error(navigator.onLine === false
-      ? 'Nejsi online, data zůstala v telefonu.'
-      : 'Tabulka neodpovídá. Zkontroluj adresu a nasazení skriptu.');
-  }
+/* Prohlížeč neumí přečíst odpověď Apps Scriptu, pokud ji Google nepustí přes CORS.
+   Proto jsou tři cesty, jak s tabulkou mluvit, a použije se první, která projde. */
+
+/* 1) přímý fetch – nejrychlejší, funguje, když Google pošle hlavičky CORS */
+async function gsFetchPost(payload) {
+  const res = await fetch((DB.settings.gsUrl || '').trim(), {
+    method: 'POST', mode: 'cors', redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: payload
+  });
   const txt = await res.text();
   let j;
   try { j = JSON.parse(txt); }
-  catch (e) { throw new Error('Skript nevrátil data. Nasaď ho znovu s přístupem „Kdokoli“.'); }
+  catch (e) { throw new Error('Skript nevrátil data.'); }
   if (!j.ok) throw new Error(j.error || 'Skript hlásí chybu.');
   return j;
 }
+
+/* 2) odeslání formulářem ve skrytém rámu – na formuláře se CORS nevztahuje,
+      odpověď sice nepřečteme, ale data dorazí; potvrdí se dotazem na stav */
+function gsFormPost(payload) {
+  return new Promise((resolve, reject) => {
+    const url = (DB.settings.gsUrl || '').trim();
+    const name = 'gsf' + Math.random().toString(36).slice(2, 8);
+    const frame = document.createElement('iframe');
+    frame.name = name; frame.style.display = 'none';
+    const form = document.createElement('form');
+    form.method = 'POST'; form.action = url; form.target = name; form.style.display = 'none';
+    const field = document.createElement('input');
+    field.type = 'hidden'; field.name = 'payload'; field.value = payload;
+    form.appendChild(field);
+    document.body.appendChild(frame); document.body.appendChild(form);
+    let done = false;
+    const finish = fn => { if (done) return; done = true; clearTimeout(t); setTimeout(() => { form.remove(); frame.remove(); }, 600); fn(); };
+    const t = setTimeout(() => finish(() => reject(new Error('Tabulka neodpověděla do 25 vteřin.'))), 25000);
+    frame.addEventListener('load', () => finish(resolve));
+    try { form.submit(); } catch (e) { finish(() => reject(new Error('Odeslání se nepodařilo spustit.'))); }
+  });
+}
+
+/* 3) JSONP pro čtení – načte se jako skript, takže CORS nic neblokuje */
+function gsJsonp(params, timeout) {
+  return new Promise((resolve, reject) => {
+    const url = (DB.settings.gsUrl || '').trim();
+    if (!gsReady()) { reject(new Error('Vyplň adresu skriptu (končí na /exec).')); return; }
+    const cb = 'gscb' + Math.random().toString(36).slice(2, 9);
+    const q = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
+    const el = document.createElement('script');
+    let done = false;
+    const cleanup = () => { try { delete window[cb]; } catch (e) { window[cb] = undefined; } el.remove(); clearTimeout(t); };
+    const t = setTimeout(() => {
+      if (done) return; done = true; cleanup();
+      reject(new Error('Skript neodpověděl. Nasaď ho znovu s přístupem „Kdokoli“.'));
+    }, timeout || 20000);
+    window[cb] = data => {
+      if (done) return; done = true; cleanup();
+      if (!data || data.ok === false) reject(new Error((data && data.error) || 'Skript hlásí chybu.'));
+      else resolve(data);
+    };
+    el.onerror = () => { if (done) return; done = true; cleanup(); reject(new Error('Adresa skriptu není dostupná.')); };
+    el.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + q + '&callback=' + cb + '&t=' + Date.now();
+    document.head.appendChild(el);
+  });
+}
+
 async function gsPush(silent) {
   if (gs.busy || !gsReady()) return;
   gs.busy = true; gs.error = ''; if (!silent) render();
+  const payload = JSON.stringify({ action: 'sync', sheets: gsSheetsPayload(), raw: JSON.stringify(DB) });
+  const want = DB.results.length;
   try {
-    const r = await gsCall('sync', { sheets: gsSheetsPayload(), raw: JSON.stringify(DB) }, true);
+    let how = 'přímo';
+    try {
+      await gsFetchPost(payload);
+    } catch (err) {
+      await gsFormPost(payload);              // náhradní cesta bez CORS
+      const st = await gsJsonp({ action: 'status' });
+      if (st.results !== want) throw new Error(`Tabulka přijala ${st.results} z ${want} výkonů. Nasaď skript znovu jako novou verzi.`);
+      how = 'formulářem';
+    }
     DB.settings.gsLast = new Date().toISOString();
     gs.suspend = true; save(); gs.suspend = false;
     gs.warned = false;
-    if (!silent) toast(r.blind ? 'Odesláno (bez potvrzení od tabulky).' : 'Uloženo do tabulky.');
+    if (!silent) toast('Uloženo do tabulky (' + how + ').');
   } catch (e) {
     gs.error = e.message;
     if (!silent || !gs.warned) { toast('Tabulka: ' + e.message); gs.warned = true; }
@@ -1267,11 +1322,37 @@ async function gsPush(silent) {
     if (state.tab === 'settings') render();
   }
 }
+
+async function gsTest() {
+  if (gs.busy) return;
+  gs.busy = true; gs.error = ''; render();
+  try {
+    const st = await gsJsonp({ action: 'status' });
+    openSheet('Spojení funguje', `<div class="card" style="margin-top:4px">
+        <div class="name">${esc(st.name || 'Google tabulka')}</div>
+        <div class="sub muted small">${st.athletes || 0} závodníků · ${st.disciplines || 0} disciplín · ${st.results || 0} výkonů</div>
+        <div class="sub muted small">${st.updated ? 'naposledy zapsáno ' + new Date(st.updated).toLocaleString('cs-CZ') : 'zatím bez zápisu'}</div>
+      </div>
+      <p class="muted small">V telefonu máš ${DB.athletes.length} závodníků a ${DB.results.length} výkonů. Pokud se čísla liší, klepni na Uložit do tabulky.</p>
+      <button class="btn primary" data-act="gs-push">Uložit do tabulky</button>`);
+  } catch (e) {
+    gs.error = e.message;
+    openSheet('Spojení nefunguje', `<p class="small" style="color:var(--stop);margin-top:0">${esc(e.message)}</p>
+      <p class="muted small">Zkus po řadě:</p>
+      <ol class="muted small" style="padding-left:20px;line-height:1.7">
+        <li>Otevři adresu skriptu v Safari — musí se objevit <b>{"ok":true…}</b>. Když se ukáže přihlášení Google, není nasazený pro „Kdokoli“.</li>
+        <li>V Apps Scriptu: <b>Nasadit → Spravovat nasazení → tužka → Verze: Nová verze → Nasadit</b>. Bez tohohle kroku běží pořád starý kód.</li>
+        <li>Zkontroluj, že máš v editoru vloženou aktuální verzi souboru <b>apps-script.gs</b>.</li>
+      </ol>
+      <button class="btn" data-act="gs-test" style="margin-top:6px">Zkusit znovu</button>`);
+  } finally { gs.busy = false; if (state.tab === 'settings') render(); }
+}
+
 async function gsPull() {
   if (gs.busy) return;
   gs.busy = true; gs.error = ''; render();
   try {
-    const r = await gsCall('pull');
+    const r = await gsJsonp({ action: 'pull' });
     const d = typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
     if (!d || !Array.isArray(d.athletes)) throw new Error('V tabulce zatím nejsou žádná data.');
     pendingImport = d;
@@ -1287,6 +1368,7 @@ async function gsPull() {
     toast('Tabulka: ' + e.message);
   } finally { gs.busy = false; if (state.tab === 'settings') render(); }
 }
+
 function gsSchedule() {
   if (!DB.settings.gsAuto || !gsReady() || gs.suspend) return;
   clearTimeout(gs.timer);
@@ -1468,6 +1550,7 @@ document.addEventListener('click', e => {
     case 'send-mail': sendByMail(); break;
     case 'gs-push': gsPush(false); break;
     case 'gs-pull': gsPull(); break;
+    case 'gs-test': gsTest(); break;
     case 'gs-open': {
       const u = (DB.settings.gsSheet || '').trim();
       if (u) window.open(u, '_blank'); else toast('Adresa tabulky není vyplněná.');
