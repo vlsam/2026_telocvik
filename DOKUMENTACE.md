@@ -57,6 +57,11 @@ Ve složce se soubory spusť `python3 -m http.server 8000` a na iPhonu ve stejn�
 - Neplatný pokus zapíšeš jako `x`, započítá se nejlepší platný pokus.
 - Tlačítko **Uložit a další** posouvá rovnou na dalšího v seznamu, takže projedeš celou třídu bez zavírání a otvírání.
 
+**Karta závodníka**
+- Klepnutím na jméno se otevře jeho karta: všechny výkony pohromadě, seskupené po disciplínách, u každé nejlepší výkon a známka.
+- Nahoře je souhrn — kolik má výkonů a jaký má průměr známek.
+- Každý řádek vede na detail výkonu, kde se dá hodnota opravit nebo výkon smazat. U výkonu je vidět, které zařízení ho zapsalo.
+
 **Výsledky**
 - Pořadí podle disciplíny a skupiny (řadí se správně podle toho, jestli je lepší vyšší nebo nižší hodnota), nebo chronologický přehled.
 - U každého výkonu známka (pokud jsou limity vyplněné) a označení osobního rekordu.
@@ -335,7 +340,52 @@ Pár čísel pro představu: chlapec v 1. ročníku má jedničku za 60 m v 9,20
 
 Ber to jako podklad k úpravě, ne jako normu. Nejrychleji si limity zkalibruješ tak, že necháš proběhnout první měření, podíváš se na rozložení výkonů ve třídě a hranice posuneš. V Google tabulce k tomu vzniká samostatný list **Známkování**, kde jsou všechny hodnoty pohromadě.
 
-## 7. Jak je to udělané
+## 7. Když aplikaci používá víc lidí
+
+Tohle je nejzrádnější část celého řešení. Data leží na několika telefonech a v jedné tabulce, a nikdo nikoho nevidí. Nejde jen o zlý úmysl — stačí, aby jeden učitel klepl na „Nahradit vše“ ve chvíli, kdy má v telefonu poloviční data. Obrana je proto postavená do vrstev, aby selhání jedné neznamenalo ztrátu.
+
+### 1. Nic se nemaže natvrdo
+
+Smazaný výkon, závodník i disciplína zůstávají v datech označené jako smazané a přesunou se do **Koše** (Nastavení → Koš), odkud je lze vrátit. Není to jen pohodlí. Kdyby se záznam skutečně odstranil, druhý telefon by nedokázal rozlišit „tenhle výkon byl smazán“ od „tenhle výkon ještě neznám“ — a při každém slučování by ho poslušně vrátil zpátky. Smazání se proto přenáší jako údaj, ne jako chybějící řádek.
+
+Koš se vysypává ručně a jen tehdy, když jsi si jistý. Po vysypání na jednom telefonu se záznamy mohou vrátit z druhého, který je pořád má; při definitivním úklidu je potřeba vysypat koš všude.
+
+### 2. Ukládání do tabulky je slučování, ne přepis
+
+Když klepneš na **Uložit do tabulky**, aplikace nejdřív stáhne, co je v tabulce teď, sloučí to se svými daty a teprve pak zapíše celek zpátky. Slučuje se **po jednotlivých záznamech**, ne po celých tabulkách:
+
+- Záznam, který má jedna strana navíc, se doplní. Nikdy se nezahodí jen proto, že o něm druhá strana neví.
+- Když stejný záznam změnily obě strany, vyhraje ten s novějším časem změny. Každý záznam si nese razítko poslední úpravy.
+- Když stejného člověka zadali oba nezávisle (různá interní čísla), spáruje se podle jména, příjmení a třídy a jeho výkony se přepojí na jeden záznam, aby nevznikl dvojník.
+
+### 3. Kontrola verze při zápisu
+
+Tabulka si drží číslo verze, které roste s každým zápisem. Aplikace posílá spolu s daty i verzi, ze které vycházela. Když mezitím stihl zapsat někdo jiný, skript zápis **odmítne** a aplikace celé kolo zopakuje — znovu si načte novější stav, sloučí ho a zkusí to znovu (až třikrát). Bez toho by existovalo okno několika stovek milisekund, ve kterém by pomalejší telefon přepsal cizí čerstvý zápis.
+
+### 4. Snímky předchozích stavů
+
+Skript si **před každým zápisem** odloží dosavadní stav do skrytého listu. Drží se posledních osm, v kruhu. V aplikaci je najdeš pod **Nastavení → Zálohy v tabulce** s časem, počty a jménem zařízení; obnovení vrátí tabulku do vybraného stavu a pak si ho stáhneš do telefonu.
+
+Nad tím vším je ještě **historie verzí samotné Google tabulky** (Soubor → Historie verzí). Ta zachytí i to, co by aplikace nezachytila — třeba když někdo omylem smaže list ručně v prohlížeči.
+
+### 5. Vidíš, kdo co zapsal
+
+V Nastavení si každý pojmenuje své zařízení („Novák – iPhone“). Jméno se ukládá ke každému výkonu a je vidět na kartě závodníka, v detailu výkonu i v tabulce. Nejde o kontrolu lidí, ale o možnost dohledat, odkud se vzal podezřelý údaj.
+
+### Co aplikace neuhlídá
+
+- **„Nahradit vše“ při načítání z tabulky** je jediné tlačítko, které umí zahodit data. Je schválně až druhé v pořadí a je určené pro čerstvě nasazený telefon. Ve dvou lidech používej vždycky Sloučit.
+- **Ruční úpravy v listech** `Závodníci`, `Disciplíny`, `Výkony` a `Známkování` se při dalším zápisu přepíšou — tyhle listy jsou výstup, ne vstup. Vlastní výpočty a poznámky si dej na samostatný list a odkazuj se do nich.
+- **Kdo má adresu skriptu, může do tabulky zapisovat.** Nedávej ji do veřejného repozitáře ani do sdíleného chatu.
+
+### Doporučené uspořádání pro školu
+
+- Každý učitel má svou třídu jako skupinu a měří jen v ní. Slučování si pak nemá jak konkurovat.
+- Průběžné ukládání nech zapnuté, ať v tabulce nevzniká velký rozdíl oproti telefonům.
+- Na konci akce ať každý klepne na Uložit do tabulky a ověří Testem připojení, že počty sedí.
+- Právo editovat samotnou tabulku dej co nejmenšímu okruhu lidí; ostatní ať pracují jen přes aplikaci.
+
+## 8. Jak je to udělané
 
 ### Technologie
 Čistý HTML, CSS a JavaScript, žádný framework ani knihovna, žádné volání na internet. Důvod: aplikace musí nastartovat okamžitě a fungovat na stadionu bez signálu, a za pár let nemá co přestat fungovat kvůli závislostem.
@@ -385,6 +435,10 @@ Posílají se dvě věci najednou: **hotové tabulky** k zapsání do listů (ap
 
 Skript si při zápisu bere `LockService`, aby dva telefony odesílající naráz nepřepsaly data uprostřed zápisu.
 
+Nad tím běží **optimistické zamykání**: v `ScriptProperties` je čítač verze, aplikace posílá verzi, ze které vycházela, a nesouhlas znamená odmítnutí se `conflict: true`. Klient pak zopakuje cyklus načti–sluč–zapiš. Je to levnější a spolehlivější než držet zámek přes celou operaci, protože mezi načtením a zápisem je síť.
+
+Slučování (`mergeState`) porovnává záznamy podle `id` a razítka `updated`; smazané záznamy nesou `del: true`, takže se rozdíl „smazáno“ a „ještě neznám“ dá rozlišit. Kdyby se mazalo natvrdo, každé slučování by smazané záznamy vzkřísilo.
+
 Automatické ukládání je navěšené na jediném místě — na funkci `save()`, kterou volá každá změna dat. Odeslání se odloží o 4 sekundy, takže rychlé zapisování celé třídy skončí jedním požadavkem místo třiceti. Zápis, který provede sama synchronizace (čas poslední synchronizace), je označený příznakem `suspend`, aby se nespustila nekonečná smyčka.
 
 Selhání sítě nikdy neshodí uložení dat: nejdřív se zapíše do telefonu, teprve pak se zkouší odeslat. Když odeslání selže, zůstane hláška v Nastavení a další pokus přijde s příští změnou nebo při návratu online.
@@ -411,7 +465,7 @@ Vzhled je stavěný na použití venku a jednou rukou: tmavé pozadí kvůli či
 
 ---
 
-## 8. Když něco nefunguje
+## 9. Když něco nefunguje
 
 | Problém | Řešení |
 |---|---|
@@ -421,6 +475,9 @@ Vzhled je stavěný na použití venku a jednou rukou: tmavé pozadí kvůli či
 | Displej zhasíná | Zkontroluj Nastavení → *Nechat displej svítit*. Na starších verzích iOS (pod 16.4) tato funkce není dostupná — nastav delší automatické zamykání v systému. |
 | Excel zobrazí CSV v jednom sloupci | Otevři přes Data → Načíst z textu a vyber středník jako oddělovač. |
 | Sdílení nenabídne Mail s přílohami | Starší iOS neumí sdílet soubory. Appka místo toho oba soubory stáhne do Souborů → Stažené a otevře prázdný e-mail — přílohy k němu přidáš klipsem. |
+| Omylem jsem něco smazal | Nastavení → Koš → Vrátit. Když už proběhla synchronizace, vrať to na tom telefonu, kde je záznam v koši, a ulož do tabulky. |
+| V tabulce chybí výkony jednoho učitele | Ať ten telefon klepne na Uložit do tabulky — data má pořád u sebe a slučováním se doplní. Pokud chybí i tam, zkus Nastavení → Zálohy v tabulce. |
+| Ruční změny v listech zmizely | Listy Závodníci, Disciplíny, Výkony a Známkování se při každém zápisu přepisují. Vlastní úpravy patří na samostatný list. |
 | U výkonu chybí známka | Závodník nemá pohlaví nebo ročník, nebo disciplína nemá pro tuhle kombinaci vyplněné limity. Karta Závodníci označí, koho je potřeba doplnit. |
 | Do tabulky se nic neukládá | Nastavení → Google tabulka → **Test připojení**. Hláška řekne, co dělat; v devíti z deseti případů chybí nasazení nové verze skriptu. |
 | Tabulka hlásí, že skript nevrátil data | Nasazení není nastavené na „Kdokoli". Nasadit → Spravovat nasazení → tužka → oprav přístup → Nasadit. |
@@ -431,7 +488,7 @@ Vzhled je stavěný na použití venku a jednou rukou: tmavé pozadí kvůli či
 
 ---
 
-## 9. Kam to jde dál rozšířit
+## 10. Kam to jde dál rozšířit
 
 - Mezičasy pro jednoho běžce (rozdělení `splits` podle typu disciplíny — datový model to už umožňuje).
 - Bodovací tabulky IAAF nebo školní normy místo pevných známkovacích hranic.

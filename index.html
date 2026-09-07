@@ -305,16 +305,18 @@ function emptyScaleRows() { return [[null, null, null], [null, null, null], [nul
 
 function freshDB() {
   return {
-    v: 4,
+    v: 5,
     athletes: [],
     disciplines: seedDisciplines(),
     results: [],
+    deviceId: uid(),
     settings: { sound: true, countdown: 0, awake: true, lastGroup: '', email: '',
-      gsUrl: GS_URL, gsAuto: true, gsLast: '',
+      deviceName: '', gsUrl: GS_URL, gsAuto: true, gsLast: '',
       gsSheet: 'https://docs.google.com/spreadsheets/d/1KPsHM_cYwhb_cKvOa_pmqPV36Lu_r-j1hIusruUktzE' }
   };
 }
 
+const nowMs = () => Date.now();
 let DB;
 (function loadDB() {
   const raw = readStore();
@@ -327,6 +329,13 @@ let DB;
     if ((d.v || 1) < 3) {                                          // doplnění adresy tabulky
       if (!DB.settings.gsUrl) DB.settings.gsUrl = GS_URL;
       DB.settings.gsAuto = true; DB.v = 3;
+    }
+    if ((d.v || 1) < 5) {                                          // razítka a měkké mazání
+      const t = nowMs();
+      ['athletes', 'disciplines', 'results'].forEach(k =>
+        DB[k].forEach(x => { if (!x.updated) x.updated = t; if (x.del === undefined) x.del = false; }));
+      if (!DB.deviceId) DB.deviceId = uid();
+      DB.v = 5;
     }
     if ((d.v || 1) < 4) {                                          // pohlaví, ročník, známkové tabulky
       const def = seedDisciplines();
@@ -395,6 +404,25 @@ function parseValue(d, str) { return d.type === 'time' ? parseTime(str) : parseN
 /* ---------- práce s daty ---------- */
 const athleteById = id => DB.athletes.find(a => a.id === id);
 const discById = id => DB.disciplines.find(d => d.id === id);
+/* Smazané záznamy se nemažou, jen se označí — jinak by je synchronizace nedokázala
+   odlišit od záznamů, které druhé zařízení ještě nezná. */
+const liveResults = () => DB.results.filter(r => !r.del);
+const liveDiscs = () => DB.disciplines.filter(d => !d.del);
+const liveAthletes = () => DB.athletes.filter(a => !a.del);
+const deviceLabel = () => (DB.settings.deviceName || '').trim();
+function stamp(x) { x.updated = nowMs(); return x; }
+function softDelete(list, pred) {
+  let n = 0;
+  DB[list].forEach(x => { if (!x.del && pred(x)) { x.del = true; stamp(x); n++; } });
+  return n;
+}
+function trashItems() {
+  const out = [];
+  DB.results.forEach(r => { if (r.del) out.push({ kind: 'results', o: r }); });
+  DB.athletes.forEach(a => { if (a.del) out.push({ kind: 'athletes', o: a }); });
+  DB.disciplines.forEach(d => { if (d.del) out.push({ kind: 'disciplines', o: d }); });
+  return out.sort((x, y) => (y.o.updated || 0) - (x.o.updated || 0));
+}
 /* Zobrazujeme příjmení první — stejně jako se řadí seznam. */
 const fullName = a => a ? ((a.last || '') + ' ' + (a.first || '')).trim() : '—';
 const sortName = a => fullName(a).toLowerCase();
@@ -417,7 +445,7 @@ function noteFlag(a) {
 
 /* Známky za dosavadní výkony, chronologicky. Pomlčka = zatím nic. */
 function gradeStrip(a) {
-  const rs = DB.results.filter(r => r.athleteId === a.id)
+  const rs = liveResults().filter(r => r.athleteId === a.id)
     .sort((x, y) => (x.date || '').localeCompare(y.date || '') || x.created - y.created);
   if (!rs.length) return '—';
   const cells = rs.map(r => {
@@ -429,11 +457,11 @@ function gradeStrip(a) {
 }
 
 function groups() {
-  const g = new Set(DB.athletes.map(a => (a.group || '').trim()).filter(Boolean));
+  const g = new Set(liveAthletes().map(a => (a.group || '').trim()).filter(Boolean));
   return Array.from(g).sort((a, b) => a.localeCompare(b, 'cs'));
 }
 function athletesIn(group) {
-  const list = DB.athletes.filter(a => !group || (a.group || '') === group);
+  const list = liveAthletes().filter(a => !group || (a.group || '') === group);
   return list.sort((a, b) => sortName(a).localeCompare(sortName(b), 'cs'));
 }
 function isBetter(d, a, b) { // je a lepší než b?
@@ -445,7 +473,7 @@ function bestResult(athleteId, discId) {
   if (!d) return null;
   let best = null;
   for (const r of DB.results) {
-    if (r.athleteId !== athleteId || r.discId !== discId) continue;
+    if (r.del || r.athleteId !== athleteId || r.discId !== discId) continue;
     if (!best || isBetter(d, r.value, best.value)) best = r;
   }
   return best;
@@ -476,7 +504,8 @@ function addResult(o) {
   const prev = bestResult(o.athleteId, o.discId);
   const r = Object.assign({
     id: uid(), date: state.date, session: state.session || '',
-    attempts: null, note: '', created: Date.now()
+    attempts: null, note: '', created: Date.now(), updated: nowMs(),
+    del: false, by: deviceLabel()
   }, o);
   DB.results.push(r);
   save();
@@ -696,7 +725,7 @@ function groupChips(act) {
 
 /* ---------- MĚŘENÍ ---------- */
 function viewMeasure() {
-  if (!DB.athletes.length) {
+  if (!liveAthletes().length) {
     return `<div class="empty"><h3>Zatím tu nikdo není</h3>
       <p>Přidej závodníky ručně nebo je najednou naimportuj ze souboru CSV.</p>
       <button class="btn primary" data-act="go-athletes" style="margin-top:14px">Přidat závodníky</button></div>`;
@@ -711,8 +740,8 @@ function viewPickDiscipline() {
       <div class="grow"><div class="name">${esc(d.name)}</div>
       <div class="sub">${d.type === 'time' ? 'stopky · přesnost 0,' + '0'.repeat(Math.max(0, d.dec - 1)) + '1 s' : 'zápis výkonu · ' + esc(d.unit) + ' · ' + d.attempts + '× pokus'}</div></div>
       <span class="muted">›</span></button>`;
-  const times = DB.disciplines.filter(d => d.type === 'time');
-  const meas = DB.disciplines.filter(d => d.type === 'measure');
+  const times = liveDiscs().filter(d => d.type === 'time');
+  const meas = liveDiscs().filter(d => d.type === 'measure');
   return `<p class="muted small" style="margin-top:0">Vyber disciplínu, kterou budeš teď měřit.</p>
     ${times.length ? `<h3 style="margin:16px 0 8px;font-size:15px" class="muted">Na čas</h3><div class="list">${times.map(row).join('')}</div>` : ''}
     ${meas.length ? `<h3 style="margin:20px 0 8px;font-size:15px" class="muted">Na výkon</h3><div class="list">${meas.map(row).join('')}</div>` : ''}
@@ -817,7 +846,7 @@ function viewField(d) {
   const list = athletesIn(state.group);
   const rows = list.map(a => {
     const b = bestResult(a.id, d.id);
-    const today = DB.results.filter(r => r.athleteId === a.id && r.discId === d.id && r.date === state.date)
+    const today = liveResults().filter(r => r.athleteId === a.id && r.discId === d.id && r.date === state.date)
       .sort((x, y) => y.created - x.created)[0];
     return `<button class="item" data-act="entry-open" data-id="${a.id}">
       <div class="grow who">${sexIcon(a)}
@@ -856,7 +885,7 @@ function athListHTML() {
     <p>Přidej je tlačítkem ＋ nahoře, nebo naimportuj seznam z CSV.</p></div>`;
   return `<div class="list">${list.map(a => {
     const miss = !a.sex || !a.year;
-    return `<button class="item" data-act="ath-edit" data-id="${a.id}">
+    return `<button class="item" data-act="ath-open" data-id="${a.id}">
       <div class="grow who">${sexIcon(a)}
         <div style="min-width:0">
           <div class="name">${esc(nameWithGroup(a))}</div>
@@ -866,6 +895,60 @@ function athListHTML() {
       ${noteFlag(a)}
       <span class="muted">›</span></button>`;
   }).join('')}</div>`;
+}
+
+/* Karta závodníka: všechny jeho výkony pohromadě, po disciplínách. */
+function athProfile(id) {
+  const a = athleteById(id);
+  if (!a) return;
+  const rs = liveResults().filter(r => r.athleteId === id);
+  const byDisc = new Map();
+  rs.forEach(r => {
+    if (!byDisc.has(r.discId)) byDisc.set(r.discId, []);
+    byDisc.get(r.discId).push(r);
+  });
+  const order = Array.from(byDisc.keys())
+    .map(k => discById(k)).filter(Boolean)
+    .sort((x, y) => x.name.localeCompare(y.name, 'cs'));
+
+  const grades = rs.map(r => gradeFor(discById(r.discId), r.value, a)).filter(g => g != null);
+  const avg = grades.length ? (grades.reduce((s, g) => s + g, 0) / grades.length) : null;
+
+  const blocks = order.map(d => {
+    const list = byDisc.get(d.id).slice().sort((x, y) =>
+      (y.date || '').localeCompare(x.date || '') || y.created - x.created);
+    const best = list.reduce((m, r) => (!m || isBetter(d, r.value, m.value)) ? r : m, null);
+    return `<div class="card" style="padding:12px 14px">
+      <div class="spread" style="margin-bottom:6px">
+        <h3 style="font-size:15.5px">${esc(d.name)}</h3>
+        <span class="small"><span class="muted">nej</span> <b>${fmtValue(d, best.value)}</b> ${gradeBadge(d, best.value, a)}</span>
+      </div>
+      ${list.map(r => `<button class="spread small" data-act="res-open" data-id="${r.id}"
+          style="width:100%;padding:7px 0;border-bottom:1px solid var(--line);text-align:left">
+          <span class="muted">${czDate(r.date)}${r.session ? ' · ' + esc(r.session) : ''}${r.by ? ' · ' + esc(r.by) : ''}</span>
+          <span class="num">${r.id === best.id ? '<span class="badge pb">nej</span> ' : ''}${fmtValue(d, r.value)} ${gradeBadge(d, r.value, a)}</span>
+        </button>`).join('')}
+    </div>`;
+  }).join('');
+
+  openSheet(fullName(a), `
+    <div class="card">
+      <div class="row" style="gap:11px">
+        ${sexIcon(a)}
+        <div class="grow"><div class="name">${esc(nameWithGroup(a))}</div>
+          <div class="sub muted">${sexLabel(a.sex)} · ${yearLabel(a.year)}${a.year ? ' (' + (14 + a.year) + ' let)' : ''}</div></div>
+      </div>
+      ${a.note ? `<div class="row" style="gap:9px;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)">
+        <svg viewBox="0 0 24 24" style="width:19px;height:19px;flex:0 0 19px"><path fill="var(--warn)" d="M12 2.6 23 21.4H1z"/><path fill="#241c00" d="M11 9h2v6h-2zm0 7.5h2V19h-2z"/></svg>
+        <span class="small">${esc(a.note)}</span></div>` : ''}
+      <div class="row small muted" style="gap:14px;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)">
+        <span>${rs.length} ${rs.length === 1 ? 'výkon' : (rs.length >= 2 && rs.length <= 4 ? 'výkony' : 'výkonů')}</span>
+        ${avg != null ? `<span>průměr známek <b class="gr gr${Math.round(avg)}">${avg.toFixed(2).replace('.', ',')}</b></span>` : ''}
+      </div>
+    </div>
+    ${blocks || `<div class="empty" style="padding:24px 0"><h3>Zatím žádné výkony</h3>
+      <p class="small">Až něco naměříš, objeví se to tady.</p></div>`}
+    <button class="btn" data-act="ath-edit" data-id="${id}" style="margin-top:4px">Upravit údaje</button>`);
 }
 
 function athSheet(id) {
@@ -897,8 +980,8 @@ function athSheet(id) {
 
 /* ---------- DISCIPLÍNY ---------- */
 function viewDisciplines() {
-  return `<div class="list">${DB.disciplines.map(d => {
-    const n = DB.results.filter(r => r.discId === d.id).length;
+  return `<div class="list">${liveDiscs().map(d => {
+    const n = liveResults().filter(r => r.discId === d.id).length;
     const known = d.scale && ['M', 'F'].filter(k => (d.scale[k] || []).some(r => r && r.some(x => x != null)));
     const sub = (d.type === 'time'
       ? `stopky · ${d.dec} des. místa`
@@ -991,12 +1074,12 @@ function scaleCollect() {
 
 /* ---------- VÝSLEDKY ---------- */
 function viewResults() {
-  if (!DB.results.length) return `<div class="empty"><h3>Zatím žádné výsledky</h3>
+  if (!liveResults().length) return `<div class="empty"><h3>Zatím žádné výsledky</h3>
     <p>Změř první disciplínu a objeví se tady i s pořadím.</p></div>`;
-  const used = DB.disciplines.filter(d => DB.results.some(r => r.discId === d.id));
+  const used = liveDiscs().filter(d => liveResults().some(r => r.discId === d.id));
   if (!state.resDisc || !used.some(d => d.id === state.resDisc)) state.resDisc = used[0].id;
   const d = discById(state.resDisc);
-  let rows = DB.results.filter(r => r.discId === d.id);
+  let rows = liveResults().filter(r => r.discId === d.id);
   if (state.group) rows = rows.filter(r => { const a = athleteById(r.athleteId); return a && a.group === state.group; });
   if (state.resMode === 'rank') {
     const best = new Map();
@@ -1036,23 +1119,68 @@ function resSheet(id) {
   const r = DB.results.find(x => x.id === id);
   if (!r) return;
   const d = discById(r.discId), a = athleteById(r.athleteId);
-  const hist = DB.results.filter(x => x.athleteId === r.athleteId && x.discId === r.discId)
+  const hist = liveResults().filter(x => x.athleteId === r.athleteId && x.discId === r.discId)
     .sort((x, y) => y.created - x.created);
   const b = bestResult(r.athleteId, r.discId);
   openSheet(fullName(a), `
     <div class="spread"><div><div class="muted small">${esc(d.name)} · ${czDate(r.date)}</div>
       <div style="font-size:34px;font-weight:700" class="num">${fmtValue(d, r.value)}</div></div>
       <div>${b && b.id === r.id ? '<span class="badge pb">osobní rekord</span> ' : ''}${gradeBadge(d, r.value, a)}</div></div>
+    ${r.by ? `<p class="muted tiny" style="margin:6px 0 0">zapsal: ${esc(r.by)}</p>` : ''}
     ${r.attempts && r.attempts.length > 1 ? `<p class="muted small">Pokusy: ${r.attempts.map(v => v == null ? 'x' : fmtValuePlain(d, v)).join(' · ')}</p>` : ''}
     <label class="field" style="margin-top:14px"><span>Výkon</span>
       <input type="text" inputmode="decimal" id="rVal" value="${fmtValuePlain(d, r.value)}"></label>
     <label class="field"><span>Datum</span><input type="date" id="rDate" value="${r.date}"></label>
     <label class="field"><span>Poznámka</span><input type="text" id="rNote" value="${esc(r.note || '')}"></label>
-    <button class="btn primary" data-act="res-save" data-id="${r.id}">Uložit změny</button>
+    <button class="btn" data-act="ath-open" data-id="${r.athleteId}">Všechny výkony závodníka</button>
+    <button class="btn primary" data-act="res-save" data-id="${r.id}" style="margin-top:10px">Uložit změny</button>
     <button class="btn danger" data-act="res-del" data-id="${r.id}" style="margin-top:10px">Smazat výkon</button>
     ${hist.length > 1 ? `<hr class="hr"><h3 style="font-size:15px;margin-bottom:8px">Historie</h3>
       ${hist.map(h => `<div class="spread small" style="padding:6px 0;border-bottom:1px solid var(--line)">
         <span class="muted">${czDate(h.date)}</span><span class="num">${fmtValue(d, h.value)}</span></div>`).join('')}` : ''}`);
+}
+
+/* ---------- KOŠ A ZÁLOHY ---------- */
+function trashSheet() {
+  const items = trashItems();
+  const label = it => {
+    if (it.kind === 'results') {
+      const a = athleteById(it.o.athleteId), d = discById(it.o.discId);
+      return `${esc(fullName(a))} · ${esc(d ? d.name : '?')} · ${d ? fmtValue(d, it.o.value) : ''}`;
+    }
+    if (it.kind === 'athletes') return esc(nameWithGroup(it.o)) + ' <span class="muted">(i jeho výkony)</span>';
+    return esc(it.o.name) + ' <span class="muted">(i její výkony)</span>';
+  };
+  openSheet('Koš', items.length ? `
+    <p class="muted small" style="margin-top:0">Smazané záznamy tu zůstávají, dokud je nevysypeš. Obnovení funguje i po synchronizaci — smazání se totiž přenáší jako údaj, ne jako chybějící řádek.</p>
+    <div class="list">${items.slice(0, 60).map(it => `<div class="item">
+        <div class="grow"><div class="name small">${label(it)}</div>
+          <div class="sub">${new Date(it.o.updated || 0).toLocaleString('cs-CZ')}</div></div>
+        <button class="btn slim" data-act="trash-restore" data-kind="${it.kind}" data-id="${it.o.id}">Vrátit</button>
+      </div>`).join('')}</div>
+    <button class="btn danger" data-act="trash-empty" style="margin-top:14px">Vysypat koš</button>`
+    : `<div class="empty"><h3>Koš je prázdný</h3><p class="small">Nic smazaného tu není.</p></div>`);
+}
+
+function snapshotsSheet(list) {
+  openSheet('Zálohy v tabulce', list && list.length ? `
+    <p class="muted small" style="margin-top:0">Skript si před každým zápisem odloží předchozí stav. Obnovením se do tabulky vrátí vybraná záloha; do telefonu si ji pak stáhneš přes Načíst z tabulky.</p>
+    <div class="list">${list.map(x => `<div class="item">
+        <div class="grow"><div class="name small">${new Date(x.time).toLocaleString('cs-CZ')}</div>
+          <div class="sub">${x.athletes} závodníků · ${x.results} výkonů${x.device ? ' · ' + esc(x.device) : ''}</div></div>
+        <button class="btn slim" data-act="snap-restore" data-i="${x.i}">Obnovit</button>
+      </div>`).join('')}</div>`
+    : `<div class="empty"><h3>Zatím žádné zálohy</h3><p class="small">Vytvoří se při prvním uložení do tabulky.</p></div>`);
+}
+
+async function loadSnapshots() {
+  if (gs.busy) return;
+  gs.busy = true; render();
+  try {
+    const r = await gsJsonp({ action: 'snapshots' });
+    snapshotsSheet(r.list || []);
+  } catch (e) { gs.error = e.message; toast('Tabulka: ' + e.message); }
+  finally { gs.busy = false; if (state.tab === 'settings') render(); }
 }
 
 /* ---------- NASTAVENÍ ---------- */
@@ -1071,6 +1199,8 @@ function viewSettings() {
       <select id="setCd">${[0, 3, 5, 10].map(n => `<option value="${n}" ${DB.settings.countdown === n ? 'selected' : ''}>${n === 0 ? 'bez odpočtu' : n + ' sekund'}</option>`).join('')}</select></label>
     <hr class="hr">
     <h3 style="font-size:16px;margin-bottom:10px">Google tabulka</h3>
+    <label class="field"><span>Název tohoto zařízení — objeví se u zapsaných výkonů</span>
+      <input type="text" id="setDevice" value="${esc(DB.settings.deviceName || '')}" placeholder="např. Novák – iPhone"></label>
     <label class="field"><span>Adresa skriptu tabulky</span>
       <input type="text" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false"
         id="setGsUrl" value="${esc(DB.settings.gsUrl || '')}" placeholder="https://script.google.com/…/exec"></label>
@@ -1083,6 +1213,7 @@ function viewSettings() {
       <button class="btn ghost" data-act="gs-test" ${gs.busy ? 'disabled' : ''}>Test připojení</button>
       <button class="btn ghost" data-act="gs-open">Otevřít tabulku</button>
     </div>
+    <button class="btn ghost" data-act="snap-open" style="margin-top:10px" ${gs.busy ? 'disabled' : ''}>Zálohy v tabulce</button>
     <p class="${gs.error ? 'small' : 'muted tiny'}" style="margin-top:12px;${gs.error ? 'color:var(--stop)' : ''}">
       ${gs.error ? esc(gs.error) : (DB.settings.gsLast
         ? 'Naposledy uloženo ' + new Date(DB.settings.gsLast).toLocaleString('cs-CZ') + '.'
@@ -1096,8 +1227,9 @@ function viewSettings() {
     <div class="btn-row"><button class="btn" data-act="export-all">Uložit CSV</button>
       <button class="btn" data-act="export-json">Uložit zálohu</button></div>
     <button class="btn" data-act="import-json" style="margin-top:10px">Načíst zálohu</button>
+    <button class="btn" data-act="trash-open" style="margin-top:10px">Koš${trashItems().length ? ' · ' + trashItems().length : ''}</button>
     <button class="btn danger" data-act="wipe" style="margin-top:10px">Smazat všechna data</button>
-    <p class="muted tiny" style="margin-top:14px">${DB.athletes.length} závodníků · ${DB.disciplines.length} disciplín · ${DB.results.length} výkonů.
+    <p class="muted tiny" style="margin-top:14px">${liveAthletes().length} závodníků · ${liveDiscs().length} disciplín · ${liveResults().length} výkonů.
       Data jsou uložená jen v tomto zařízení. Zálohu si občas ulož do Souborů nebo na iCloud.</p>
     <hr class="hr">
     <h3 style="font-size:16px;margin-bottom:8px">Jak mít appku na ploše</h3>
@@ -1113,7 +1245,7 @@ function entrySheet(athleteId) {
   const list = athletesIn(state.group);
   const idx = list.findIndex(x => x.id === athleteId);
   const next = list[idx + 1];
-  const existing = DB.results.filter(r => r.athleteId === athleteId && r.discId === d.id && r.date === state.date)
+  const existing = liveResults().filter(r => r.athleteId === athleteId && r.discId === d.id && r.date === state.date)
     .sort((x, y) => y.created - x.created)[0];
   const pre = existing ? (existing.attempts || [existing.value]) : [];
   const val = v => v == null ? '' : fmtValuePlain(d, v);
@@ -1154,15 +1286,17 @@ function entrySave(athleteId, nextId) {
   if (!valid.length) { toast('Zadej alespoň jeden platný pokus.'); return; }
   const best = valid.reduce((m, v) => isBetter(d, v, m) ? v : m, valid[0]);
   const value = d.type === 'time' ? Math.round(best) : best;
-  const existing = DB.results.filter(r => r.athleteId === athleteId && r.discId === d.id && r.date === state.date)
+  const existing = liveResults().filter(r => r.athleteId === athleteId && r.discId === d.id && r.date === state.date)
     .sort((x, y) => y.created - x.created)[0];
   let pb = false;
   if (existing) {
-    existing.value = value; existing.attempts = attempts; existing.session = state.session || existing.session;
-    save();
+    existing.value = value; existing.attempts = attempts;
+    existing.session = state.session || existing.session;
+    existing.by = deviceLabel() || existing.by;
+    stamp(existing); save();
   } else {
     const res = addResult({ athleteId, discId: d.id, value, attempts });
-    pb = res.isPB && DB.results.filter(r => r.athleteId === athleteId && r.discId === d.id).length > 1;
+    pb = res.isPB && liveResults().filter(r => r.athleteId === athleteId && r.discId === d.id).length > 1;
   }
   toast(fullName(athleteById(athleteId)) + ' · ' + fmtValue(d, value) + (pb ? ' · osobní rekord!' : ''));
   if (pb) beep(1320, 200, .25);
@@ -1263,8 +1397,8 @@ function importAthletes(text, forcedGroup) {
       last = p.pop(); first = p.join(' ');
     }
     if (!first && !last) return;
-    if (DB.athletes.some(a => a.first === first && a.last === last && (a.group || '') === (group || ''))) return;
-    DB.athletes.push({ id: uid(), first, last, group, note, sex, year: year || yearFromGroup(group) });
+    if (liveAthletes().some(a => a.first === first && a.last === last && (a.group || '') === (group || ''))) return;
+    DB.athletes.push(stamp({ id: uid(), first, last, group, note, sex, year: year || yearFromGroup(group), del: false }));
     n++;
   });
   save();
@@ -1325,7 +1459,7 @@ function importSheet() {
 
 function exportPack() {
   const stamp = todayISO();
-  const rows = DB.results.slice().sort((a, c) =>
+  const rows = liveResults().slice().sort((a, c) =>
     (a.date || '').localeCompare(c.date || '') || a.created - c.created);
   const csv = toCSV(resultRows(rows));
   const backup = JSON.stringify(Object.assign({
@@ -1345,7 +1479,7 @@ function sendByMail() {
     + `• ${p.csvName} — tabulka všech výkonů (otevře se v Excelu)\n`
     + `• ${p.jsonName} — záloha aplikace; v jiném telefonu ji načti v Nastavení → Načíst zálohu `
     + `a nastaví se závodníci, disciplíny i známkové limity\n\n`
-    + `${DB.athletes.length} závodníků · ${DB.disciplines.length} disciplín · ${DB.results.length} výkonů`;
+    + `${liveAthletes().length} závodníků · ${liveDiscs().length} disciplín · ${liveResults().length} výkonů`;
 
   let files = null;
   try {
@@ -1375,30 +1509,63 @@ function mailFallback(p, subject, body) {
   toast('Soubory stažené, otevírám poštu.');
 }
 
-function mergeDB(d) {
+/* Sloučení cizího stavu do vlastního. Rozhoduje se po jednotlivých záznamech
+   podle času poslední změny, takže se nikdy nepřepíše novější údaj starším.
+   Záznamy, které druhá strana nezná, zůstávají — chybějící ≠ smazané. */
+function mergeState(rem) {
+  if (!rem || !Array.isArray(rem.athletes)) return null;
+  const st = { added: 0, updated: 0, deleted: 0 };
   const mapA = {}, mapD = {};
-  (d.athletes || []).forEach(a => {
-    const same = DB.athletes.find(x => x.id === a.id ||
-      (x.first === a.first && x.last === a.last && (x.group || '') === (a.group || '')));
-    if (same) mapA[a.id] = same.id;
-    else { DB.athletes.push(a); mapA[a.id] = a.id; }
+
+  (rem.athletes || []).forEach(a => {
+    let cur = DB.athletes.find(x => x.id === a.id);
+    if (!cur && !a.del) cur = DB.athletes.find(x => !x.del &&
+      x.first === a.first && x.last === a.last && (x.group || '') === (a.group || ''));
+    if (!cur) {
+      DB.athletes.push(Object.assign({ del: false, updated: 0 }, a));
+      mapA[a.id] = a.id; a.del ? st.deleted++ : st.added++;
+    } else {
+      mapA[a.id] = cur.id;
+      if ((a.updated || 0) > (cur.updated || 0)) {
+        const keep = cur.id; Object.assign(cur, a, { id: keep });
+        a.del ? st.deleted++ : st.updated++;
+      }
+    }
   });
-  (d.disciplines || []).forEach(x => {
-    const same = DB.disciplines.find(y => y.id === x.id || y.name === x.name);
-    if (same) { mapD[x.id] = same.id; if (!same.grades && x.grades) same.grades = x.grades; }
-    else { DB.disciplines.push(x); mapD[x.id] = x.id; }
+
+  (rem.disciplines || []).forEach(x => {
+    let cur = DB.disciplines.find(y => y.id === x.id);
+    if (!cur && !x.del) cur = DB.disciplines.find(y => !y.del && y.name === x.name);
+    if (!cur) {
+      DB.disciplines.push(Object.assign({ del: false, updated: 0 }, x));
+      mapD[x.id] = x.id; x.del ? st.deleted++ : st.added++;
+    } else {
+      mapD[x.id] = cur.id;
+      if ((x.updated || 0) > (cur.updated || 0)) {
+        const keep = cur.id; Object.assign(cur, x, { id: keep });
+        x.del ? st.deleted++ : st.updated++;
+      }
+    }
   });
-  let n = 0;
-  (d.results || []).forEach(r => {
-    const aid = mapA[r.athleteId], did = mapD[r.discId];
-    if (!aid || !did) return;
-    if (DB.results.some(z => z.id === r.id)) return;
-    if (DB.results.some(z => z.athleteId === aid && z.discId === did && z.date === r.date && z.value === r.value)) return;
-    DB.results.push(Object.assign({}, r, { athleteId: aid, discId: did }));
-    n++;
+
+  (rem.results || []).forEach(r => {
+    const aid = mapA[r.athleteId] || r.athleteId;
+    const did = mapD[r.discId] || r.discId;
+    let cur = DB.results.find(z => z.id === r.id);
+    if (!cur && !r.del) cur = DB.results.find(z => !z.del && z.athleteId === aid &&
+      z.discId === did && z.date === r.date && z.value === r.value);
+    if (!cur) {
+      DB.results.push(Object.assign({ del: false, updated: 0 }, r, { athleteId: aid, discId: did }));
+      r.del ? st.deleted++ : st.added++;
+    } else if ((r.updated || 0) > (cur.updated || 0)) {
+      const keep = cur.id;
+      Object.assign(cur, r, { id: keep, athleteId: aid, discId: did });
+      r.del ? st.deleted++ : st.updated++;
+    }
   });
+
   save();
-  return { results: n, athletes: DB.athletes.length, discs: DB.disciplines.length };
+  return st;
 }
 
 let pendingImport = null;
@@ -1414,7 +1581,7 @@ const gs = { busy: false, error: '', timer: 0, suspend: false, warned: false };
 function gsReady() { return /^https:\/\/script\.google\.com\/.+/.test((DB.settings.gsUrl || '').trim()); }
 
 function gsResultRows() {
-  const rows = DB.results.slice().sort((a, c) =>
+  const rows = liveResults().slice().sort((a, c) =>
     (a.date || '').localeCompare(c.date || '') || a.created - c.created);
   const head = ['Datum', 'Skupina', 'Příjmení', 'Jméno', 'Pohlaví', 'Ročník', 'Disciplína', 'Výkon', 'Jednotka',
     'Známka', 'Hodnota', 'Pokusy', 'Označení', 'Poznámka', 'id', 'athleteId', 'discId'];
@@ -1434,7 +1601,7 @@ function gsSheetsPayload() {
       ...athletesIn('').map(a => [a.id, a.first || '', a.last || '', a.group || '',
         a.sex === 'M' ? 'chlapec' : a.sex === 'F' ? 'dívka' : '', a.year || '', a.note || ''])],
     disciplines: [['id', 'Název', 'Měření', 'Jednotka', 'Des. místa', 'Pokusy', 'Lepší je', 'Známkování'],
-      ...DB.disciplines.map(d => [d.id, d.name, d.type === 'time' ? 'čas' : 'výkon', d.unit, d.dec,
+      ...liveDiscs().map(d => [d.id, d.name, d.type === 'time' ? 'čas' : 'výkon', d.unit, d.dec,
         d.attempts, d.better === 'lower' ? 'nižší' : 'vyšší',
         d.scale ? ['M', 'F'].filter(k => (d.scale[k] || []).some(r => r && r.some(x => x != null)))
           .map(k => k === 'M' ? 'chlapci' : 'dívky').join(' + ') : ''])],
@@ -1445,9 +1612,9 @@ function gsSheetsPayload() {
       ['Zvuk', DB.settings.sound ? 'zapnuto' : 'vypnuto'],
       ['Displej svítí', DB.settings.awake ? 'zapnuto' : 'vypnuto'],
       ['E-mail', DB.settings.email || ''],
-      ['Závodníků', DB.athletes.length],
-      ['Disciplín', DB.disciplines.length],
-      ['Výkonů', DB.results.length],
+      ['Závodníků', liveAthletes().length],
+      ['Disciplín', liveDiscs().length],
+      ['Výkonů', liveResults().length],
       ['Poslední synchronizace', new Date().toLocaleString('cs-CZ')]]
   };
 }
@@ -1456,7 +1623,7 @@ function gsSheetsPayload() {
 
 function gsScaleRows() {
   const out = [['Disciplína', 'Pohlaví', 'Ročník', 'Věk', 'Na 1', 'Na 2', 'Na 3', 'Jednotka']];
-  DB.disciplines.forEach(d => {
+  liveDiscs().forEach(d => {
     if (!d.scale) return;
     ['M', 'F'].forEach(k => {
       const rows = d.scale[k];
@@ -1482,7 +1649,7 @@ async function gsFetchPost(payload) {
   let j;
   try { j = JSON.parse(txt); }
   catch (e) { throw new Error('Skript nevrátil data.'); }
-  if (!j.ok) throw new Error(j.error || 'Skript hlásí chybu.');
+  if (!j.ok && !j.conflict) throw new Error(j.error || 'Skript hlásí chybu.');
   return j;
 }
 
@@ -1533,25 +1700,55 @@ function gsJsonp(params, timeout) {
   });
 }
 
-async function gsPush(silent) {
+/* Uložení do tabulky probíhá vždy jako slouč-a-zapiš:
+   1) načteme aktuální stav z tabulky a sloučíme ho do svého,
+   2) zapíšeme celek zpátky spolu s číslem verze, ze které jsme vycházeli,
+   3) pokud mezitím zapsal někdo jiný, skript zápis odmítne a kolo se zopakuje. */
+async function gsPush(silent, attempt) {
+  attempt = attempt || 1;
   if (gs.busy || !gsReady()) return;
   gs.busy = true; gs.error = ''; if (!silent) render();
-  const payload = JSON.stringify({ action: 'sync', sheets: gsSheetsPayload(), raw: JSON.stringify(DB) });
-  const want = DB.results.length;
   try {
-    let how = 'přímo';
+    let base = null, pulledOk = false;
     try {
-      await gsFetchPost(payload);
+      const pulled = await gsJsonp({ action: 'pull' });
+      base = pulled.rev == null ? null : Number(pulled.rev);
+      pulledOk = true;
+      if (pulled.data) {
+        const d = typeof pulled.data === 'string' ? JSON.parse(pulled.data) : pulled.data;
+        if (d && Array.isArray(d.athletes)) mergeState(d);
+      }
+    } catch (e) { /* číst nejde, zkusíme aspoň zapsat */ }
+
+    const want = liveResults().length;
+    const payload = JSON.stringify({
+      action: 'sync', base, device: deviceLabel(),
+      sheets: gsSheetsPayload(), raw: JSON.stringify(DB)
+    });
+
+    let how = 'přímo', conflict = false;
+    try {
+      const res = await gsFetchPost(payload);
+      conflict = !!res.conflict;
     } catch (err) {
-      await gsFormPost(payload);              // náhradní cesta bez CORS
+      await gsFormPost(payload);
       const st = await gsJsonp({ action: 'status' });
-      if (st.results !== want) throw new Error(`Tabulka přijala ${st.results} z ${want} výkonů. Nasaď skript znovu jako novou verzi.`);
       how = 'formulářem';
+      if (st.results !== want) conflict = true;
     }
+
+    if (conflict) {
+      if (attempt < 3) { gs.busy = false; return gsPush(silent, attempt + 1); }
+      throw new Error('Do tabulky právě zapisuje někdo jiný. Zkus to za chvíli, nic se neztratilo.');
+    }
+
     DB.settings.gsLast = new Date().toISOString();
     gs.suspend = true; save(); gs.suspend = false;
     gs.warned = false;
-    if (!silent) toast('Uloženo do tabulky (' + how + ').');
+    if (!silent) {
+      render();
+      toast(pulledOk ? 'Sloučeno a uloženo do tabulky (' + how + ').' : 'Uloženo do tabulky (' + how + ').');
+    }
   } catch (e) {
     gs.error = e.message;
     if (!silent || !gs.warned) { toast('Tabulka: ' + e.message); gs.warned = true; }
@@ -1571,7 +1768,7 @@ async function gsTest() {
         <div class="sub muted small">${st.athletes || 0} závodníků · ${st.disciplines || 0} disciplín · ${st.results || 0} výkonů</div>
         <div class="sub muted small">${st.updated ? 'naposledy zapsáno ' + new Date(st.updated).toLocaleString('cs-CZ') : 'zatím bez zápisu'}</div>
       </div>
-      <p class="muted small">V telefonu máš ${DB.athletes.length} závodníků a ${DB.results.length} výkonů. Pokud se čísla liší, klepni na Uložit do tabulky.</p>
+      <p class="muted small">V telefonu máš ${liveAthletes().length} závodníků a ${liveResults().length} výkonů. Pokud se čísla liší, klepni na Uložit do tabulky.</p>
       <button class="btn primary" data-act="gs-push">Uložit do tabulky</button>`);
   } catch (e) {
     gs.error = e.message;
@@ -1598,9 +1795,9 @@ async function gsPull() {
     openSheet('Data z tabulky', `<div class="card" style="margin-top:4px">
         <div class="name">Načteno z Google tabulky</div>
         <div class="sub muted small">${d.athletes.length} závodníků · ${d.disciplines.length} disciplín${grades ? ' (z toho ' + grades + ' se známkovými limity)' : ''} · ${(d.results || []).length} výkonů</div></div>
-      <button class="btn primary" data-act="import-replace">Nahradit vše</button>
-      <button class="btn" data-act="import-merge" style="margin-top:10px">Přidat k současným datům</button>
-      <p class="muted tiny" style="margin-top:12px">Sloučení doplní jen to, co v telefonu chybí, a přeskočí duplicity.</p>`);
+      <button class="btn primary" data-act="import-merge">Sloučit s daty v telefonu</button>
+      <button class="btn" data-act="import-replace" style="margin-top:10px">Nahradit vše</button>
+      <p class="muted tiny" style="margin-top:12px">Slučování je bezpečnější: u každého záznamu vyhraje novější verze a nic se neztratí. Nahrazení použij jen na čerstvě nasazeném telefonu.</p>`);
   } catch (e) {
     gs.error = e.message;
     toast('Tabulka: ' + e.message);
@@ -1688,6 +1885,7 @@ document.addEventListener('click', e => {
       break;
     }
     case 'ath-add': athDraft = null; athSheet(null); break;
+    case 'ath-open': athProfile(id); break;
     case 'ath-edit': athDraft = null; athSheet(id); break;
     case 'ath-sex':
     case 'ath-year': {
@@ -1707,8 +1905,8 @@ document.addEventListener('click', e => {
       const d = athDraft || {};
       const sex = d.sex !== undefined ? d.sex : (cur ? cur.sex || '' : '');
       const year = d.year !== undefined ? d.year : (cur ? cur.year : yearFromGroup(group));
-      if (cur) Object.assign(cur, { first, last, group, note, sex, year });
-      else DB.athletes.push({ id: uid(), first, last, group, note, sex, year });
+      if (cur) stamp(Object.assign(cur, { first, last, group, note, sex, year }));
+      else DB.athletes.push(stamp({ id: uid(), first, last, group, note, sex, year, del: false }));
       athDraft = null;
       DB.settings.lastGroup = group; save(); closeSheet(); render();
       toast(id ? 'Uloženo.' : fullName({ first, last }) + ' přidán.');
@@ -1717,10 +1915,10 @@ document.addEventListener('click', e => {
     case 'ath-del': {
       const a = athleteById(id);
       confirmSheet('Smazat závodníka?', `${fullName(a)} i všechny jeho výkony budou pryč.`, 'Smazat', () => {
-        DB.athletes = DB.athletes.filter(x => x.id !== id);
-        DB.results = DB.results.filter(r => r.athleteId !== id);
+        softDelete('athletes', x => x.id === id);
+        softDelete('results', r => r.athleteId === id);
         sw.lineup = sw.lineup.filter(x => x !== id);
-        save(); render(); toast('Smazáno.');
+        save(); render(); toast('Smazáno. Jde to vrátit v Nastavení → Koš.');
       }, true);
       break;
     }
@@ -1749,6 +1947,7 @@ document.addEventListener('click', e => {
       const sd = discById(id);
       const any = k => scaleDraft[k].some(r => r.some(x => x != null));
       sd.scale = (any('M') || any('F')) ? { M: any('M') ? scaleDraft.M : null, F: any('F') ? scaleDraft.F : null } : null;
+      stamp(sd);
       scaleDraft = null;
       save(); closeSheet(); render();
       toast('Známkovací tabulka uložena.');
@@ -1765,18 +1964,18 @@ document.addEventListener('click', e => {
         dec: Number($('#dDec').value), attempts: Number($('#dAtt').value),
         better: $('#dBetter').value
       };
-      if (id) Object.assign(discById(id), o);
-      else DB.disciplines.push(Object.assign({ id: uid(), scale: null }, o));
+      if (id) stamp(Object.assign(discById(id), o));
+      else DB.disciplines.push(stamp(Object.assign({ id: uid(), scale: null, del: false }, o)));
       save(); closeSheet(); render(); toast('Uloženo.');
       break;
     }
     case 'disc-del': {
       const d = discById(id);
       confirmSheet('Smazat disciplínu?', `${d.name} i všechny zapsané výkony budou pryč.`, 'Smazat', () => {
-        DB.disciplines = DB.disciplines.filter(x => x.id !== id);
-        DB.results = DB.results.filter(r => r.discId !== id);
+        softDelete('disciplines', x => x.id === id);
+        softDelete('results', r => r.discId === id);
         if (state.discId === id) { state.discId = null; swReset(); }
-        save(); render(); toast('Smazáno.');
+        save(); render(); toast('Smazáno. Jde to vrátit v Nastavení → Koš.');
       }, true);
       break;
     }
@@ -1790,29 +1989,30 @@ document.addEventListener('click', e => {
       r.value = d.type === 'time' ? Math.round(v) : v;
       r.date = $('#rDate').value || r.date;
       r.note = $('#rNote').value.trim();
+      stamp(r);
       save(); closeSheet(); render(); toast('Uloženo.');
       break;
     }
     case 'res-del': {
       const r = DB.results.find(x => x.id === id);
       confirmSheet('Smazat výkon?', 'Tenhle záznam zmizí.', 'Smazat', () => {
-        DB.results = DB.results.filter(x => x.id !== id);
-        save(); render(); toast('Smazáno.');
+        softDelete('results', x => x.id === id);
+        save(); closeSheet(); render(); toast('Smazáno. Jde to vrátit v Nastavení → Koš.');
       }, true);
       break;
     }
     case 'res-mode': state.resMode = b.dataset.m; render(); break;
     case 'export-res': {
       const d = discById(state.resDisc);
-      let rows = DB.results.filter(r => r.discId === state.resDisc);
+      let rows = liveResults().filter(r => r.discId === state.resDisc);
       if (state.group) rows = rows.filter(r => { const a = athleteById(r.athleteId); return a && a.group === state.group; });
       rows.sort((a, c) => d.better === 'lower' ? a.value - c.value : c.value - a.value);
       download(`vysledky-${noAcc(d.name).replace(/[^a-z0-9]+/g, '-')}.csv`, toCSV(resultRows(rows)));
       break;
     }
     case 'export-all':
-      if (!DB.results.length) { toast('Zatím není co exportovat.'); break; }
-      download(`vykony-${todayISO()}.csv`, toCSV(resultRows(DB.results.slice().sort((a, c) => (a.date || '').localeCompare(c.date || '')))));
+      if (!liveResults().length) { toast('Zatím není co exportovat.'); break; }
+      download(`vykony-${todayISO()}.csv`, toCSV(resultRows(liveResults().slice().sort((a, c) => (a.date || '').localeCompare(c.date || '')))));
       break;
     case 'export-json':
       download(`zaloha-vykony-${todayISO()}.json`, JSON.stringify(DB), 'application/json');
@@ -1821,6 +2021,32 @@ document.addEventListener('click', e => {
     case 'gs-push': gsPush(false); break;
     case 'gs-pull': gsPull(); break;
     case 'gs-test': gsTest(); break;
+    case 'snap-open': loadSnapshots(); break;
+    case 'snap-restore': {
+      const i = b.dataset.i;
+      confirmSheet('Obnovit zálohu?', 'Do tabulky se vrátí vybraný stav. Data v telefonu zůstanou, dokud si zálohu nenačteš.', 'Obnovit', async () => {
+        try {
+          await gsJsonp({ action: 'restore', i });
+          toast('Záloha obnovena. Teď klepni na Načíst z tabulky.');
+        } catch (e) { toast('Tabulka: ' + e.message); }
+      });
+      break;
+    }
+    case 'trash-open': trashSheet(); break;
+    case 'trash-restore': {
+      const kind = b.dataset.kind;
+      const o = DB[kind].find(x => x.id === id);
+      if (o) { o.del = false; stamp(o); save(); }
+      trashSheet(); render();
+      toast('Vráceno.');
+      break;
+    }
+    case 'trash-empty':
+      confirmSheet('Vysypat koš?', 'Smazané záznamy zmizí nadobro. Pokud jsou i v tabulce, vrátí se odtud při příští synchronizaci — vysyp koš na všech zařízeních.', 'Vysypat', () => {
+        ['results', 'athletes', 'disciplines'].forEach(k => { DB[k] = DB[k].filter(x => !x.del); });
+        save(); render(); toast('Koš vysypán.');
+      }, true);
+      break;
     case 'gs-open': {
       const u = (DB.settings.gsSheet || '').trim();
       if (u) window.open(u, '_blank'); else toast('Adresa tabulky není vyplněná.');
@@ -1838,14 +2064,14 @@ document.addEventListener('click', e => {
       DB = Object.assign(freshDB(), pendingImport);
       DB.settings = Object.assign(freshDB().settings, pendingImport.settings || {});
       state.discId = null; swReset(); save(); closeSheet(); render();
-      toast(`Nastaveno: ${DB.athletes.length} závodníků, ${DB.disciplines.length} disciplín, ${DB.results.length} výkonů.`);
+      toast(`Nastaveno: ${liveAthletes().length} závodníků, ${liveDiscs().length} disciplín, ${liveResults().length} výkonů.`);
       pendingImport = null;
       break;
     case 'import-merge': {
       if (!pendingImport) break;
-      const r = mergeDB(pendingImport);
+      const r = mergeState(pendingImport);
       state.discId = null; swReset(); closeSheet(); render();
-      toast(`Sloučeno · ${r.athletes} závodníků, ${r.discs} disciplín, přibylo ${r.results} výkonů.`);
+      toast(r ? `Sloučeno · přibylo ${r.added}, upraveno ${r.updated}, smazáno ${r.deleted}.` : 'Nic k sloučení.');
       pendingImport = null;
       break;
     }
@@ -1878,6 +2104,7 @@ document.addEventListener('change', e => {
   if (t.id === 'csvFile') readFile(t.files[0], txt => { $('#csvText').value = txt; toast('Soubor načten, zkontroluj a potvrď.'); });
   if (t.id === 'setMail') { DB.settings.email = t.value.trim(); save(); }
   if (t.id === 'setGsUrl') { DB.settings.gsUrl = t.value.trim(); gs.error = ''; gs.suspend = true; save(); gs.suspend = false; }
+  if (t.id === 'setDevice') { DB.settings.deviceName = t.value.trim(); gs.suspend = true; save(); gs.suspend = false; }
   if (t.id === 'jsonFile') readFile(t.files[0], txt => {
     try {
       const d = JSON.parse(txt);
@@ -1901,6 +2128,7 @@ document.addEventListener('input', e => {
   if (t.id === 'mSession') state.session = t.value;
   if (t.id === 'setGsUrl') { DB.settings.gsUrl = t.value.trim(); gs.suspend = true; save(); gs.suspend = false; }
   if (t.id === 'setMail') { DB.settings.email = t.value.trim(); gs.suspend = true; save(); gs.suspend = false; }
+  if (t.id === 'setDevice') { DB.settings.deviceName = t.value.trim(); gs.suspend = true; save(); gs.suspend = false; }
 });
 
 document.addEventListener('click', e => {
